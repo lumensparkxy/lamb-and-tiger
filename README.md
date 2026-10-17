@@ -76,4 +76,6 @@ python3 scripts/summarize_ai.py work/ai-evaluation.log
 
 Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. CI configuration uses the same local checks and separate API 29/34/36/37 emulator jobs; remote results are tracked in [PR #15](https://github.com/lumensparkxy/lamb-and-tiger/pull/15). No release signing/publishing is configured.
 
+CI invokes `bash scripts/ci-connected-tests.sh` around the connected-test command to print instrumentation counts, failure reports and device crash diagnostics without changing the test exit status. Espresso 3.7.0 is explicitly pinned for API 37 input-service compatibility.
+
 The isolated [Nearby harness](experiments/nearby-harness/README.md) has its own verified commands. Do not run its connectivity investigation as part of the Solo sequence. D041 authorizes continuous Solo-first implementation and routine fixes. D042 authorizes review, commit/push and issue evidence updates for this branch; merging and release publication remain separate scope boundaries.
