@@ -76,5 +76,6 @@ jobs:
           profile: pixel_2
           ram-size: 2048M
           heap-size: 256M
+          disk-size: 2048M
           disable-animations: true
           script: ./gradlew :app:connectedDebugAndroidTest --console=plain
