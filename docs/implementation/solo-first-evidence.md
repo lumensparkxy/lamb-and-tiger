@@ -10,7 +10,7 @@ Recorded 2026-10-17 under D041, reviewed for branch delivery under D042. Work is
 - App-private SQLite saves, durable pending operations, exact-intent recovery, protected replacement, contextual Continue, per-action saving, revision-bound computer cancellation, Hint and full-turn Undo. Production restoration replays the approved opening; fixtures cannot be imported.
 - Modern/Midnight Prowl, optional sound/haptics, reduced motion, adaptive board and 48 dp point controls, illustrated rules and six isolated interactive lessons.
 - English/Tamil resources with all 117 keys present in both languages. Tamil remains a draft pending fluent review.
-- Doctor, dependency locks/checksums, build/unit/lint/emulator commands, and CI configuration. Remote CI has not run.
+- Doctor, dependency locks/checksums, build/unit/lint/emulator commands, and CI configuration. Remote verification is tracked in [PR #15](https://github.com/lumensparkxy/lamb-and-tiger/pull/15).
 
 ## Verified automated checks
 
@@ -77,10 +77,16 @@ Earlier incomplete Expert trials and screenshots are retained as diagnostic hist
 
 ## Remaining gates
 
-Nearby transport and two-physical-phone testing are deferred. Fluent Tamil review, complete TalkBack review, physical sound/haptic checks, a nominated physical AI/Hint latency reference, and the broader API 29/34/37 runtime matrix remain separate from API 36 emulator evidence. CI has not run remotely. Signing custody, distribution, audience/store disclosures and publication are release work. D042 authorizes the reviewed branch commit/push and issue evidence updates. It does not authorize merging or release publication.
+Nearby transport and two-physical-phone testing are deferred. Fluent Tamil review, complete TalkBack review, physical sound/haptic checks, a nominated physical AI/Hint latency reference, and the broader API 29/34/37 runtime matrix remain separate from API 36 emulator evidence. Remote results and subsequent CI-only fixes are tracked in PR #15; the local checks above bind the original tested snapshot. Signing custody, distribution, audience/store disclosures and publication are release work. D042 authorizes the reviewed branch commit/push and issue evidence updates. It does not authorize merging or release publication.
 
 ## Pre-commit review
 
 Reviewed engine topology/transitions, search legality and cancellation, codec validation, durable SQLite recovery/replacement, app lifecycle/navigation, Compose interaction/accessibility controls, tests and CI configuration. No blocking implementation findings remained. Corrected stale delivery/AI-status wording and recorded D042 without changing the tested production/build inputs. The source manifest, APK and AI CSV checksums match the evidence above; XML reports confirm 33 tests with zero failures/errors/skips. Re-ran the documented doctor and build/unit/lint command successfully; unchanged tests were up-to-date. Existing API 36 rendered/instrumented evidence remains applicable; no new physical or Nearby check was performed.
 
 Issue updates distinguish implemented Solo criteria from pending platform/language/accessibility/release gates. Issues remain open: branch delivery is not a merge or complete V1 acceptance. The pre-existing diagnostic scaffold and its historical smoke report are preserved separately from the production modules. Generated artifacts and device logs remain ignored. Staged whitespace checks passed with `cr-at-eol` enabled for the standard CRLF Windows Gradle wrappers; local Markdown targets and the D001–D042 sequence passed.
+
+## Remote CI follow-up under D043
+
+[PR #15](https://github.com/lumensparkxy/lamb-and-tiger/pull/15) runs the Linux build/unit/lint job and API 29/34/36/37.0 emulator jobs. The initial [run 39067438872](https://github.com/lumensparkxy/lamb-and-tiger/actions/runs/39067438872) exposed a missing verification entry for `org.apache.groovy:groovy-bom:4.0.29` POM in lint resolution. The existing lock already selected this version. Added only its exact SHA-256 (`c24277dec93f146bcda25f5ae4391d6527e384e2132efa32184c1e852b42bca9`), verified against Maven Central’s published checksum and the local cached POM. The API 29/34/36 emulator jobs similarly exposed the missing `org.junit:junit-bom:5.13.3` POM checksum before instrumentation could start; added its exact Maven Central-verified SHA-256 (`e3b93e9bb8871969cf11c0e8ff10f507841db1885ca10578e290846f660fd68e`). Dependency verification remains strict. Local app/Nearby lint and all 14 API 36 Android tests passed with dependency metadata refreshed. The superseded API 37 job was still running when the fix was pushed; its result is not counted as a test failure or pass.
+
+The original 48-file manifest and APK above identify the local d4be01d snapshot; the subsequent verification-metadata edit does not change production source. Final remote results are recorded against the PR head in its verification section. Remote emulator success does not establish physical Nearby, fluent Tamil, full TalkBack or release readiness.

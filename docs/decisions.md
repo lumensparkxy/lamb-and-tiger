@@ -76,6 +76,8 @@ The [issue #2 screen-flow and acceptance consolidation](product/screen-flows-and
 
 **D042 — 2026-10-17:** The user authorized reviewing the changes, committing and pushing the Solo-first implementation, and updating relevant GitHub issues with test evidence. This includes the approved prerequisite records and preservation of the isolated diagnostic scaffold. Keep Nearby testing/integration deferred under D036/D041. This delivery does not authorize merging, issue closure, release signing, or store publication.
 
+**D043 — 2026-10-17:** The user authorized opening the Solo-first PR, running remote CI checks and fixing failures. This permits CI/build/test compatibility fixes and their commits/pushes on the existing branch. Nearby testing/integration stays deferred. Merge, issue closure and release publication remain separate gates.
+
 ## Proposals awaiting validation or approval
 
 - [Saved-state/versioning/restoration](architecture/saved-state-and-restoration.md), [Nearby authority and recovery protocol](architecture/nearby-match-protocol.md), and the [transport-independent implementation sequencing exception](architecture/implementation-readiness.md) were approved by the user in D041, which also authorizes continuous Solo-first implementation. [Build/dependency selections](architecture/build-and-verification.md) and [routine AI/UI details](architecture/implementation-details.md) are recorded under the delegated scope; current Solo checks are recorded in [implementation evidence](implementation/solo-first-evidence.md); broader platform and physical-device qualification remains pending. D038 remains the approved engine contract.

@@ -27,7 +27,7 @@ These are implementation/verification questions under the approved protocol, not
 
 - Host head-to-head progression met the [AI targets](architecture/implementation-details.md); complete the device qualification. The measured results do not establish perfect play or physical-device strength/latency.
 - Nominate a physical AI/Hint latency reference. Pixel9a emulator timing is separate evidence.
-- Execute the broader API 29/34/37 runtime matrix; the local emulator is API 36. CI is configured but has not run remotely.
+- Review the broader API 29/34/37 runtime results in [PR #15](https://github.com/lumensparkxy/lamb-and-tiger/pull/15); the local rendered evidence is API 36. Remote emulator checks do not replace the full rendered/language/accessibility or physical-device matrix.
 - Complete a real TalkBack navigation/pronunciation pass, including both themes, large text, captures, errors and completed games. Semantic-button automation is useful but does not prove the spoken experience.
 - Obtain fluent review of draft Tamil terminology, difficulty names, instructions and pronunciation. Layout checks do not approve translation quality.
 - Validate sound/haptic behaviour on physical hardware. The UI respects availability and platform controls; emulator settings tests are not a physical feedback check.
