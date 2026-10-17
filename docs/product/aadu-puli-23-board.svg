@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000" role="img" aria-labelledby="title description">
+<title id="title">23-point Aadu Puli Aatam board</title>
+<desc id="description">User-selected board transcribed with nodes A to W and 38 edges. Gold nodes A, D, E indicate approved tiger starts (D011). Four rays descend from the apex. There is no central vertical line.</desc>
+<metadata>Geometric transcription of user-supplied Screenshot 2026-10-17 at 18.49.03.png. New node labels and normalized layout. Source image authorship and license not established; this diagram is a planning aid, not a cleared release asset.</metadata>
+<rect width="1000" height="860" fill="#f7f8fa"/>
+<g font-family="Arial, sans-serif" fill="#172b43">
+<text x="500" y="38" text-anchor="middle" font-size="25" font-weight="bold">23-point Aadu Puli Aatam board</text>
+<text x="500" y="69" text-anchor="middle" font-size="17">Approved board and game-rules baseline · D017</text>
+<g stroke="#30485f" stroke-width="5" fill="none" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="500,125 418,259 336,393 254,527 172,661"/>
+<polyline points="500,125 472.667,259 445.333,393 418,527 390.667,661"/>
+<polyline points="500,125 527.333,259 554.667,393 582,527 609.333,661"/>
+<polyline points="500,125 582,259 664,393 746,527 828,661"/>
+<polyline points="254,259 418,259 472.667,259 527.333,259 582,259 746,259"/>
+<polyline points="172,393 336,393 445.333,393 554.667,393 664,393 828,393"/>
+<polyline points="90,527 254,527 418,527 582,527 746,527 910,527"/>
+<polyline points="172,661 390.667,661 609.333,661 828,661"/>
+<polyline points="254,259 172,393 90,527"/>
+<polyline points="746,259 828,393 910,527"/>
+</g>
+<circle cx="500" cy="125" r="17" fill="#ffcf72" stroke="#30485f" stroke-width="2"/><text x="500" y="131" text-anchor="middle" font-size="18" font-weight="bold">A</text>
+<circle cx="254" cy="259" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="254" y="265" text-anchor="middle" font-size="18" font-weight="bold">B</text>
+<circle cx="418" cy="259" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="418" y="265" text-anchor="middle" font-size="18" font-weight="bold">C</text>
+<circle cx="472.667" cy="259" r="17" fill="#ffcf72" stroke="#30485f" stroke-width="2"/><text x="472.667" y="265" text-anchor="middle" font-size="18" font-weight="bold">D</text>
+<circle cx="527.333" cy="259" r="17" fill="#ffcf72" stroke="#30485f" stroke-width="2"/><text x="527.333" y="265" text-anchor="middle" font-size="18" font-weight="bold">E</text>
+<circle cx="582" cy="259" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="582" y="265" text-anchor="middle" font-size="18" font-weight="bold">F</text>
+<circle cx="746" cy="259" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="746" y="265" text-anchor="middle" font-size="18" font-weight="bold">G</text>
+<circle cx="172" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="172" y="399" text-anchor="middle" font-size="18" font-weight="bold">H</text>
+<circle cx="336" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="336" y="399" text-anchor="middle" font-size="18" font-weight="bold">I</text>
+<circle cx="445.333" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="445.333" y="399" text-anchor="middle" font-size="18" font-weight="bold">J</text>
+<circle cx="554.667" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="554.667" y="399" text-anchor="middle" font-size="18" font-weight="bold">K</text>
+<circle cx="664" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="664" y="399" text-anchor="middle" font-size="18" font-weight="bold">L</text>
+<circle cx="828" cy="393" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="828" y="399" text-anchor="middle" font-size="18" font-weight="bold">M</text>
+<circle cx="90" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="90" y="533" text-anchor="middle" font-size="18" font-weight="bold">N</text>
+<circle cx="254" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="254" y="533" text-anchor="middle" font-size="18" font-weight="bold">O</text>
+<circle cx="418" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="418" y="533" text-anchor="middle" font-size="18" font-weight="bold">P</text>
+<circle cx="582" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="582" y="533" text-anchor="middle" font-size="18" font-weight="bold">Q</text>
+<circle cx="746" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="746" y="533" text-anchor="middle" font-size="18" font-weight="bold">R</text>
+<circle cx="910" cy="527" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="910" y="533" text-anchor="middle" font-size="18" font-weight="bold">S</text>
+<circle cx="172" cy="661" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="172" y="667" text-anchor="middle" font-size="18" font-weight="bold">T</text>
+<circle cx="390.667" cy="661" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="390.667" y="667" text-anchor="middle" font-size="18" font-weight="bold">U</text>
+<circle cx="609.333" cy="661" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="609.333" y="667" text-anchor="middle" font-size="18" font-weight="bold">V</text>
+<circle cx="828" cy="661" r="17" fill="#ffffff" stroke="#30485f" stroke-width="2"/><text x="828" y="667" text-anchor="middle" font-size="18" font-weight="bold">W</text>
+<text x="500" y="711" text-anchor="middle" font-size="18">23 nodes · 38 edges · four lines from the apex</text>
+<text x="500" y="741" text-anchor="middle" font-size="17">Gold A, D, E = approved tiger starts · 15 lambs off-board · lambs first</text>
+<text x="500" y="772" text-anchor="middle" font-size="16">No central vertical line. No N–T or S–W connection.</text>
+<text x="500" y="811" text-anchor="middle" font-size="13">Geometric transcription of the user-provided screenshot, 2026-10-17.</text>
+<text x="500" y="833" text-anchor="middle" font-size="13">Labels and normalized spacing added for planning.</text>
+</g></svg>

@@ -9,7 +9,7 @@ The user has requested step-by-step setup. Complete only the currently authorize
 ## Product authority
 
 - Preserve the distinction between agreed decisions, proposals, and unresolved questions.
-- Do not invent Type 2 rules, board edges, starting positions, capture thresholds, or draw conditions.
+- Use the 23-point Aadu Puli Aatam board selected in D010. Do not invent rules, board edges, starting positions, capture thresholds, or draw conditions.
 - V1 targets Solo and Nearby. Pass & Play and internet multiplayer are deferred.
 - Theme choices must preserve gameplay and board readability.
 - Do not turn proposed difficulty names or architecture into approved requirements without recording the decision.

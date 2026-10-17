@@ -8,7 +8,7 @@ Create an approachable Android Lamb and Tiger strategy game for children, famili
 
 ## Agreed direction
 
-- Use the board labelled **Game type -2** in the [user-selected reference](https://en.wikipedia.org/wiki/Lambs_and_tigers#Gallery).
+- Use the **23-point Aadu Puli Aatam board** shown in the user-provided screenshot on 2026-10-17 (D010, superseding D002). See the [annotated transcription](game-rules.md).
 - Offer Solo play with computer difficulty levels and playful names.
 - Target Nearby play between friends on separate phones without app account creation.
 - Start with a clean modern board and allow theme changes through settings.
@@ -29,7 +29,7 @@ These were discussed but still need detailed acceptance criteria:
 
 ## Proposed release success criteria
 
-- Players can complete legal games with correct outcomes on the approved Type 2 board.
+- Players can complete legal games with correct outcomes on the selected 23-point board with an approved graph and rules.
 - Solo works offline and the difficulty settings show meaningful differences in evaluation.
 - Two physical phones can discover, confirm, and complete a Nearby match.
 - Disconnect, reconnect, interruption, and saved-state behaviour match the approved specification.
@@ -38,7 +38,7 @@ These were discussed but still need detailed acceptance criteria:
 
 ## Not yet decided
 
-Exact rules, draw policy, Android support range, final theme set, difficulty names, monetization, analytics, languages, application ID, repository visibility, and release distribution. See [open questions](../open-questions.md).
+Android support range, final theme set, difficulty names, monetization, analytics, languages, application ID, and release distribution. The board and game-rules baseline for issue #1 is approved in D017, incorporating D011–D016; the current GitHub repository is private. See [open questions](../open-questions.md).
 
 ## First planning milestone
 
