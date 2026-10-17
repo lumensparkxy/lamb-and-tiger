@@ -1,0 +1,6 @@
+# Project-scoped Codex configuration.
+# Intentionally no overrides during the planning stage.
+# Inherit the user's model and execution settings; this file does not
+# grant permissions or bypass host/organization policy.
+# Add only verified project-specific settings when a concrete need arises.
+# Shared working instructions live in ../AGENTS.md.
