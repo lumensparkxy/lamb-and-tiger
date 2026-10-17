@@ -125,7 +125,7 @@ The user approved these five app rules on 2026-10-17:
 
 This is the project's chosen app policy, not a claim of a universal traditional repetition rule. Occurrence history is required to evaluate repetition; board occupancy alone is insufficient. Offers and responses are agreement events, not additional occurrences of a board position. The definition is about position occurrences, not repeating a particular piece's move three times.
 
-D016 separately resolves lambs having no legal action. D015 does not add a no-progress/turn limit, choose an outcome for quitting, or approve a Nearby messaging/reconnect protocol. Draw-offer delivery, expiry, and recovery details belong to the later Nearby flow/protocol decisions.
+D016 separately resolves lambs having no legal action. D015 does not add a no-progress/turn limit, choose an outcome for quitting, or approve a Nearby messaging/reconnect protocol. [D028](brief.md#approved-nearby-draw-offer-interaction-d028) subsequently approves the Nearby draw-offer interaction, including own-turn offers, paused responses, interruption handling, and match/position validity. Delivery mechanisms and concurrent acceptance/withdrawal/disconnection ordering remain protocol work.
 
 ## Approved lamb-no-action handling (D016)
 
@@ -133,7 +133,7 @@ The user approved this handling on 2026-10-17:
 
 1. **No automatic pass** for the lamb player.
 2. A lamb turn with no legal action is an **invalid game state**, not a win or draw.
-3. **Stop further moves and report the problem.** Recovery behaviour will be specified during implementation planning.
+3. **Stop further moves and report the problem.** [D032](brief.md#approved-invalid-game-state-recovery-d032) approves the recovery experience; validation, reconstruction, and Nearby reconciliation mechanisms remain architecture work.
 
 This concerns an ongoing match presenting a lamb turn. A game already ended under D014/D015 has no next turn. The error is not a new win/draw condition or a substitute for the approved outcome checks.
 
@@ -159,7 +159,7 @@ This is a graph-analysis result, not an app test, engine test, reachability proo
 | R05 | Capture policy | **Approved in D013:** straight leap over one adjacent lamb to the empty point immediately beyond; no turns, skipped points, or jumping tigers. Capture is optional; one jump ends the turn, with no chains. |
 | R06 | Lamb victory | **Approved in D014:** all three tigers simultaneously lack both legal ordinary moves and captures. Check after each completed action and end immediately, including during placement. |
 | R07 | Tiger victory | **Approved in D014:** five total lamb captures across all three tigers; immediate victory on the fifth capture, during or after placement. This is the chosen target, not a proof that trapping is impossible. |
-| R08 | Lambs with no legal action | **Approved in D016:** no automatic pass. A lamb turn with no legal action is an invalid game state, not a win or draw. Stop further moves and report the problem. Recovery remains for implementation planning. |
+| R08 | Lambs with no legal action | **Approved in D016:** no automatic pass. A lamb turn with no legal action is an invalid game state, not a win or draw. Stop further moves and report the problem. Recovery follows [D032](brief.md#approved-invalid-game-state-recovery-d032); technical mechanisms remain architecture work. |
 | R09 | Repetition and draws | **Approved in D015:** automatic third occurrence using species occupancy, side to move, phase, reserve/captured counts; Nearby agreement requires explicit acceptance; Solo has repetition draws but no negotiated draw in V1. Leaving is not a draw. No additional no-progress or turn-limit rule has been adopted. |
 | R10 | Ending timing and priority | **Approved in D014/D015:** after every completed action check wins first, then repetition; end on the applicable result. A completed win cannot become an agreed draw. D016 applies when an ongoing game presents a lamb turn with no legal action: stop and report an invalid state, without awarding a result. Terminal games have no next turn. |
 
@@ -205,7 +205,7 @@ These are specification examples, not executed engine tests. Tactical examples a
 
 Every move follows one edge to an empty point. Optional captures do not prohibit the chosen ordinary moves. No captures or placements occur, and the tigers are not all trapped at any stage, so neither D014 win condition interrupts the sequence. It applies to Solo and Nearby; no agreement is needed.
 
-Operational reading of D015 approved with the baseline in D017: record a fresh match's initial position once; after each completed legal action with no win, compare the resulting position using the **next side to move**. Only actual position occurrences count. An invalid attempted action, draw offer/response, UI redraw, or reading a saved state does not create another occurrence. Save/resume, if implemented later, must preserve occurrence history rather than manufacture or erase repeats. Undo/history branching remains part of the deferred undo specification.
+Operational reading of D015 approved with the baseline in D017: record a fresh match's initial position once; after each completed legal action with no win, compare the resulting position using the **next side to move**. Only actual position occurrences count. An invalid attempted action, draw offer/response, UI redraw, or reading a saved state does not create another occurrence. Save/resume, if implemented later, must preserve occurrence history rather than manufacture or erase repeats. [D024](brief.md#approved-hints-and-undo-d024) subsequently approves explicit Solo Undo: remove the undone actions and their repetition occurrences, restore the prior state without adding another occurrence, and save the remaining history. Nearby takebacks are not offered in V1.
 
 **E18 — position equality.** Matching species occupancy with the opposite side to move is a different position. A different phase, reserve count, or captured count also makes it different. Changing only internal identities of two tigers (or two lambs) occupying the same set of nodes does not make a new position. These are comparison cases, not claims that every hypothetical field combination is a valid reachable state.
 
@@ -213,7 +213,7 @@ Operational reading of D015 approved with the baseline in D017: record a fresh m
 
 **E20 — outcome priority.** For a completed action, evaluate D014 wins before D015 repetition. If a win is present, return that win without replacing it with a repetition draw. This specifies evaluation priority, not a claim that a winning state can naturally occur three times in valid play with immediate ending.
 
-**E21 — invalid lamb turn.** If an ongoing match presents a lamb turn and no legal action is available, do not pass or award a win/draw: stop further moves and report the invalid state (D016). No valid board fixture is asserted for this case: the graph analysis in the D016 section excludes it under the current graph and approved counts. Future implementation tests should exercise error handling for inconsistent state or a faulty legal-action result; recovery behaviour remains unspecified.
+**E21 — invalid lamb turn.** If an ongoing match presents a lamb turn and no legal action is available, do not pass or award a win/draw: stop further moves and report the invalid state (D016). No valid board fixture is asserted for this case: the graph analysis in the D016 section excludes it under the current graph and approved counts. Future implementation tests should exercise error handling for inconsistent state or a faulty legal-action result; recovery must follow [D032](brief.md#approved-invalid-game-state-recovery-d032), with implementation and verification still pending.
 
 ## Final review and baseline approval
 
@@ -235,6 +235,6 @@ The initial 19-point draft's verification applies only to that archived graph. T
 
 The specification deliverable for issue #1 is approved. The user subsequently authorized committing/pushing this baseline and reconciling GitHub wording and issue closure. See [issue #1](https://github.com/lumensparkxy/lamb-and-tiger/issues/1) for publication and completion evidence. This authorization stops before issue #2.
 
-Deferred items do not change these core game rules: role-selection/rematch flows, draw-offer delivery/expiry/recovery, saved-match and undo history behaviour, invalid-state recovery, and quitting outcomes belong to later product/protocol work. No automatic time/no-progress limit is part of the approved baseline.
+Subsequent app-flow decisions are recorded in the product brief: [D019](brief.md#approved-home-navigation-and-setup-d019) approves initial role selection/agreement, [D020](brief.md#approved-continue-and-saved-game-behaviour-d020) approves saved-game behaviour, and [D021](brief.md#approved-active-game-departure-and-interruptions-d021) approves departure/interruption handling with no departure result or penalty. [D022](brief.md#approved-result-screen-and-rematches-d022) approves the result screen and rematch behaviour. [D024](brief.md#approved-hints-and-undo-d024) approves hints and explicit Solo Undo with state/history restoration; interruption recovery must still never silently roll back. These app decisions retain the approved legal actions and outcome conditions. [D028](brief.md#approved-nearby-draw-offer-interaction-d028) approves Nearby draw-offer interaction. [D032](brief.md#approved-invalid-game-state-recovery-d032) approves the invalid-game-state recovery experience without rewriting completed play. Nearby result agreement and rematch-message handling, draw-offer delivery and concurrent-event recovery mechanisms, detailed saved-match synchronization, and invalid-state validation/reconstruction/reconciliation mechanisms still require later architecture/protocol work. No automatic time/no-progress limit is part of the approved baseline.
 
 Wait for NEXT before starting another setup step. This review does not authorize the Android scaffold or issue #2.
