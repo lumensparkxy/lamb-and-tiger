@@ -78,4 +78,4 @@ jobs:
           heap-size: 256M
           disk-size: 2048M
           disable-animations: true
-          script: ./gradlew :app:connectedDebugAndroidTest --console=plain
+          script: bash scripts/ci-connected-tests.sh
