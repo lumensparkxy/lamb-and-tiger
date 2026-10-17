@@ -10,6 +10,8 @@ local.properties
 *.iml
 .externalNativeBuild/
 .cxx/
+__pycache__/
+*.py[cod]
 
 # Local secrets and signing material
 .env

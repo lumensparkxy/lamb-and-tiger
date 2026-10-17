@@ -1,0 +1,9 @@
+# Implemented Solo storage codec V1
+
+D041 implements the storage contract in `MatchCodec`. This is a local Solo format; no Nearby wire codec or settlement protocol is implemented.
+
+Integers are signed JVM values encoded as big-endian bytes, constrained to the contract's nonnegative range when they represent counts/lengths. Text is a 32-bit byte length plus strict UTF-8; enum-like fields use stable textual IDs. Node bytes are explicitly A=0 through W=22, independent of Kotlin enum ordinals. Action tags: 1=Place (destination), 2=Step (origin,destination), 3=Capture (origin,middle,destination). Unknown tags, invalid nodes, invalid UTF-8, malformed counts and trailing bytes fail restoration.
+
+A record contains: 32-bit format 1; match UUID text; human side text; difficulty ID text; 64-bit nonnegative local revision; state payload. State payload contains ruleset text; 32-bit event count and ordered board actions; snapshot position; outcome text; repetition-entry count and sorted position/count entries. Position is tiger bitmask, lamb bitmask, turn text, reserve and captured counts. Sort repetition entries by tiger mask, lamb mask, turn ID, reserve, captured. Replay from the approved opening must exactly equal snapshot, outcome and repetition entries. Agreement is forbidden in a Solo save. Fixture origins are never serializable.
+
+Canonical state bytes are 32-bit codec version 1 followed by the state payload. SHA-256 is a corruption/equality aid, not authentication. Opening golden digest independently constructed with Python `struct`/UTF-8 from this specification: `868a653d86479173c1bfdfd07a6798dc11f710bde963e93764669f73db9cdf48`. Golden action bytes: Place(W) `01 16`; Capture(A,C,I) `03 00 02 08`. JVM unit tests check these fixed vectors. Future protocol encoding needs its own versioned envelopes and tests before use.

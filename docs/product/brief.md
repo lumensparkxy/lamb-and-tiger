@@ -1,6 +1,6 @@
 # V1 product brief
 
-Status: planning document, 2026-10-17. D018–D032 below record approved product decisions. D033 approves the [consolidated screen flows and acceptance criteria](screen-flows-and-acceptance.md) as the issue #2 baseline; remaining proposals are not approved requirements. Implementation and runtime verification are pending.
+Status: approved product baseline, 2026-10-17. D018–D032 below record approved product decisions. D033 approves the [consolidated screen flows and acceptance criteria](screen-flows-and-acceptance.md) as the issue #2 baseline; remaining proposals are not approved requirements. D041 authorizes the Solo-first implementation; see the [current implementation evidence](../implementation/solo-first-evidence.md). Historical approval statements below describe their original scope, not current test status.
 
 ## Purpose and audience
 
@@ -16,6 +16,8 @@ Create an approachable Android Lamb and Tiger strategy game for children, famili
 - Defer Pass & Play and internet multiplayer to V2 or later.
 
 Nearby is a V1 target subject to a successful two-physical-phone experiment. A failed experiment requires an explicit scope decision, not silent removal or an unverified promise.
+
+The production module boundaries (`app`, pure Kotlin `game`, Android `nearby`) and Kotlin + Jetpack Compose UI choice are approved in D037; see the [architecture record](../architecture/module-boundaries.md). The [immutable game-state/action contract](../architecture/game-state-and-actions.md) is approved in D038. D041 approves the persistence and protocol contracts and the [Solo-first sequence](../architecture/implementation-readiness.md). D040 confirms **Lamb and Tiger** and **`com.maswadkar.lambandtiger`** as the app name and application ID. Production Solo modules now exist and are locally verified; Nearby investigation and integration remain deferred under D036/D041.
 
 ## Approved Home labels (D018)
 
@@ -243,7 +245,7 @@ The validation, reconstruction, and Nearby reconciliation mechanisms remain arch
 
 ## Not yet decided
 
-Exact theme/layout designs, sound assets, detailed AI evaluation fixtures/thresholds, the concrete device/window test matrix, Tamil translations and difficulty names, monetization, analytics, application ID, and release distribution. D031 approves Android version/window scope and English/Tamil support with system-language selection and English fallback. The board and game-rules baseline for issue #1 is approved in D017, incorporating D011–D016; the current GitHub repository is private. See [open questions](../open-questions.md).
+Routine theme/layout/sound choices, AI engineering targets and a device/window matrix are recorded in the D039 prerequisite package. Complete evaluation fixtures and measured results, rendered design checks, physical-phone availability, reviewed Tamil translations and difficulty names, monetization, analytics, and release distribution remain pending. D040 settles the app name and application ID. D031 approves Android version/window scope and English/Tamil support with system-language selection and English fallback. The board and game-rules baseline for issue #1 is approved in D017, incorporating D011–D016; the current GitHub repository is private. See [open questions](../open-questions.md).
 
 ## First planning milestone
 
