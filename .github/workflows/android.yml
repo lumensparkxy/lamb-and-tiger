@@ -42,6 +42,27 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
+      - name: Use the pinned SDK tools for emulator-runner
+        run: |
+          # emulator-runner prepends cmdline-tools/latest, so align that alias
+          # with setup-android instead of using the runner image's older tools.
+          sdk_tools="$ANDROID_HOME/cmdline-tools"
+          test -x "$sdk_tools/16111833/bin/sdkmanager"
+          if [ -e "$sdk_tools/latest" ] || [ -L "$sdk_tools/latest" ]; then
+            mv "$sdk_tools/latest" "$sdk_tools/preinstalled-latest"
+          fi
+          ln -s "$sdk_tools/16111833" "$sdk_tools/latest"
+      - name: Install the emulator image with bounded download retries
+        env:
+          IMAGE_API: ${{ matrix.api }}
+        run: |
+          for attempt in 1 2 3; do
+            if sdkmanager "system-images;android-$IMAGE_API;google_apis;x86_64"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 5
+          done
       - name: Enable KVM for the emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -52,5 +73,8 @@ jobs:
           api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
+          profile: pixel_2
+          ram-size: 2048M
+          heap-size: 256M
           disable-animations: true
           script: ./gradlew :app:connectedDebugAndroidTest --console=plain
