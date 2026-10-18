@@ -109,3 +109,8 @@ When a proposal is accepted, record the decision and rationale here. Introduce s
 ## Nearby review and PR delivery
 
 **D048 — 2026-10-18:** The user authorized reviewing the Nearby changes, committing and pushing on a dedicated branch, and opening a PR with test evidence and emulator limitations. Preserve the untracked root `gradle/gradle-daemon-jvm.properties`. Stop before merge; two-phone acceptance, issue closure and release remain separate boundaries.
+
+
+## TalkBack acceptance exception
+
+**D049 — 2026-10-18:** After the focused TalkBack attempt and fixes, the user explicitly instructed: “no more talkback checks required.. make it pass”. Accept the current delivery without further TalkBack checks, superseding the earlier deferred spoken-verification plan. Retain the passing automated results and partial physical-session evidence in [TalkBack evidence](implementation/talkback-evidence.md). This is an explicit exception to the remaining spoken TalkBack verification under AC47/AC50 for the current scope, not a claim that unperformed tests passed or complete accessibility conformance was demonstrated. Keep TalkBack off on the Pixel. Other accessibility criteria, fluent Tamil text review, two-phone Nearby acceptance, release readiness and commit/merge boundaries are unchanged.

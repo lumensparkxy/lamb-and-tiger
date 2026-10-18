@@ -31,6 +31,51 @@ class SoloFlowTest {
     }
 
     @Test
+    fun landscapeControlsRetainSpokenFeedback() {
+        rule.runOnIdle {
+            rule.activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+        rule.waitUntil(10000) {
+            rule.activity.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        }
+        start()
+        rule.onNodeWithTag("show-controls").performClick()
+        val polite = SemanticsMatcher.expectValue(
+            androidx.compose.ui.semantics.SemanticsProperties.LiveRegion,
+            androidx.compose.ui.semantics.LiveRegionMode.Polite,
+        )
+        rule.onNode(hasContentDescription("Lambs captured: 0 / 5", substring = true))
+            .assert(polite)
+        rule.runOnIdle { vm.tap(Node.A) }
+        rule.onNodeWithText(rule.activity.getString(R.string.illegal_action)).assert(polite)
+        rule.runOnIdle { vm.hint() }
+        ready()
+        assertNotNull(vm.ui.value.hint)
+        rule.onNodeWithText("Try", substring = true).assert(polite)
+    }
+
+    @Test
+    fun tutorialCaptureExposesSelectionAndAnnouncesSuccess() {
+        ready()
+        val saved = vm.ui.value.match
+        rule.runOnIdle { vm.lesson(3) }
+        rule.onNodeWithContentDescription("Point A, Tiger, not selected").performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Point A, Tiger, selected").assertIsSelected()
+        rule.onNode(hasContentDescription("Point I, empty, capture", substring = true))
+            .performScrollTo().performClick()
+        rule.runOnIdle {
+            assertTrue(vm.ui.value.lessonSuccess)
+            assertEquals(saved, vm.ui.value.match)
+        }
+        rule.onNodeWithText(rule.activity.getString(vm.ui.value.message!!)).assert(
+            SemanticsMatcher.expectValue(
+                androidx.compose.ui.semantics.SemanticsProperties.LiveRegion,
+                androidx.compose.ui.semantics.LiveRegionMode.Polite,
+            )
+        )
+    }
+
+    @Test
     fun resizedBoardTapUsesRenderedCoordinates() {
         start()
         val density = rule.activity.resources.displayMetrics.density

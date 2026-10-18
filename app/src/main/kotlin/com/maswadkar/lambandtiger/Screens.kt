@@ -432,7 +432,7 @@ private fun GameScreen(s: UiState, vm: GameViewModel) {
         if (landscape) {
             Row(Modifier.fillMaxSize()) {
                 PlayBoard(s, vm, Modifier.weight(1f).fillMaxHeight(), reveal)
-                if (controls) PlayControls(s, vm, Modifier.width(300.dp).fillMaxHeight()) { controls = false }
+                if (controls) PlayControls(s, vm, Modifier.width(300.dp).fillMaxHeight(), showFeedback = true) { controls = false }
                 else Column(
                     Modifier.width(160.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -478,7 +478,7 @@ private fun GameScreen(s: UiState, vm: GameViewModel) {
 }
 
 @Composable
-private fun PlayControls(s: UiState, vm: GameViewModel, modifier: Modifier, hide: () -> Unit) {
+private fun PlayControls(s: UiState, vm: GameViewModel, modifier: Modifier, showFeedback: Boolean = false, hide: () -> Unit) {
     val match = s.match ?: return
     val state = match.state
     Surface(modifier.testTag("controls-panel"),
@@ -509,9 +509,12 @@ private fun PlayControls(s: UiState, vm: GameViewModel, modifier: Modifier, hide
                 Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // Portrait already keeps this feedback above the board. In landscape
+                // the controls replace that rail, so retain its status and announcements here.
+                if (showFeedback) CompactPlayStatus(s, vm)
                 if (state.outcome != Outcome.ONGOING) GameControls(s, vm, showStatus = false)
                 else {
-                    if (s.paused) Button(onClick = vm::resume, enabled = !s.busy) {
+                    if (s.paused && !showFeedback) Button(onClick = vm::resume, enabled = !s.busy) {
                         Text(stringResource(R.string.resume))
                     }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -581,10 +584,19 @@ private fun CompactPlayStatus(s: UiState, vm: GameViewModel, modifier: Modifier 
             match.state.position.turn != match.human -> R.string.thinking
             else -> R.string.your_turn
         }
+        val spokenStatus = listOfNotNull(
+            stringResource(title),
+            stringResource(R.string.reserve_count, match.state.position.reserve),
+            stringResource(R.string.captured_count, match.state.position.captured),
+            s.lastAction?.let { stringResource(R.string.last_move, moveLabel(it)) },
+        ).joinToString(". ")
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(stringResource(title), style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                fontWeight = FontWeight.Bold, modifier = Modifier.clearAndSetSemantics {
+                    contentDescription = spokenStatus
+                    liveRegion = LiveRegionMode.Polite
+                })
             if (vm.playable()) Text(
                 stringResource(if (match.state.position.phase == Phase.PLACEMENT && match.human == Side.LAMB)
                     R.string.place_compact else R.string.move_compact),
@@ -598,8 +610,10 @@ private fun CompactPlayStatus(s: UiState, vm: GameViewModel, modifier: Modifier 
         }
         if (s.paused && match.state.outcome == Outcome.ONGOING)
             Button(onClick = vm::resume, enabled = !s.busy) { Text(stringResource(R.string.resume)) }
-        s.hint?.let { Text(actionLabel(it), style = MaterialTheme.typography.bodyMedium) }
-        s.message?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+        s.hint?.let { Text(actionLabel(it), style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
+        s.message?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
     }
 }
 
