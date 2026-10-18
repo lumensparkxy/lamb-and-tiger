@@ -14,7 +14,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.maswadkar.lambandtiger.friend.FriendUi
 import com.maswadkar.lambandtiger.friend.FriendViewModel
 import com.maswadkar.lambandtiger.game.*
 import com.maswadkar.lambandtiger.nearby.NearbyPermissions
@@ -25,8 +40,6 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
     val context=LocalContext.current
     var host by remember { mutableStateOf(true) }
     var resume by remember { mutableStateOf(false) }
-    var replace by remember { mutableStateOf(false) }
-    var draw by remember { mutableStateOf(false) }
     val view=androidx.compose.ui.platform.LocalView.current
     var lastMatch by remember { mutableStateOf(s.match?.id) }
     var lastCount by remember { mutableIntStateOf(s.match?.state?.eventCount ?: 0) }
@@ -42,8 +55,6 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
         }
         if(m!=null) { lastMatch=m.id; lastCount=m.state.eventCount }
     }
-    var points by remember { mutableStateOf(false) }
-    var moving by remember(s.match?.id) { mutableStateOf(false) }
     DisposableEffect(model) { model.enter(); onDispose { if((context as? android.app.Activity)?.isChangingConfigurations != true) model.leave() } }
     val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         if(NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT).all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED })
@@ -55,102 +66,405 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
         if(needed.all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED }) model.start(host,resume)
         else permissions.launch(needed.toTypedArray())
     }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.play_friend),style=MaterialTheme.typography.headlineMedium)
-        Text(stringResource(when(s.phase) {
-            "hosting"->R.string.friend_hosting; "joining"->R.string.friend_joining; "confirm"->R.string.friend_compare
-            "confirm_wait"->R.string.friend_confirm_wait; "connecting"->R.string.friend_connecting; "sync"->R.string.friend_sync
-            "discovery_timeout"->R.string.friend_discovery_timeout; "connection_timeout"->R.string.friend_connection_timeout
-            "confirmation_timeout"->R.string.friend_confirmation_timeout
-            "permission"->R.string.friend_permission; "error"->R.string.friend_error; "disconnected"->R.string.friend_disconnected
-            "session"->R.string.friend_connected; else->R.string.friend_intro
-        }))
-        if(s.phase in listOf("idle","permission","error","disconnected","discovery_timeout","connection_timeout","confirmation_timeout")) {
-            if(s.saved) Button(onClick={ start(s.savedHost,true) }) { Text(stringResource(R.string.friend_continue)) }
-            Button(onClick={ if(s.saved) { host=true; replace=true } else start(true,false) }) { Text(stringResource(R.string.friend_host)) }
-            OutlinedButton(onClick={ if(s.saved) { host=false; replace=true } else start(false,false) }) { Text(stringResource(R.string.friend_join)) }
-        }
-        if(s.phase=="hosting") Text(model.label)
-        s.peers.forEach { (id,name) -> OutlinedButton(onClick={ model.connect(id) }) { Text(name) } }
-        if(s.code.isNotEmpty()) {
-            Text(s.peerName); Text(s.code,style=MaterialTheme.typography.headlineLarge)
-            Button(onClick=model::confirm) { Text(stringResource(R.string.friend_confirm)) }
-            OutlinedButton(onClick=model::stop) { Text(stringResource(R.string.friend_reject)) }
-        }
-        if(s.phase=="session" && s.match==null && !s.busy) {
-            Text(stringResource(R.string.friend_sides))
-            FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Side.entries.forEach { side -> FilterChip(selected=s.localSide==side,onClick={ model.select(side) },label={ Text(stringResource(if(side==Side.LAMB) R.string.lamb else R.string.tiger)) }) }
-            }
-            Text(stringResource(R.string.friend_peer_side, s.peerSide?.let { stringResource(if(it==Side.LAMB) R.string.lamb else R.string.tiger) } ?: stringResource(R.string.friend_choosing)))
-            if(s.localSide!=null && s.localSide==s.peerSide) Text(stringResource(R.string.friend_side_conflict))
-            Text(stringResource(R.string.friend_lambs_first))
-            Button(onClick=model::ready,enabled=s.localSide!=null && s.peerSide!=null && s.localSide!=s.peerSide) {
-                Text(stringResource(if(s.ready) R.string.friend_cancel_ready else R.string.friend_ready))
-            }
-            Text(stringResource(if(s.peerReady) R.string.friend_peer_ready else R.string.friend_peer_waiting))
-        }
-        s.match?.let { m ->
-            val state=m.state
-            val mine=m.side(s.player)
-            Text(stringResource(if(mine==Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers))
-            val myTurn=s.playable && state.sideToMove==mine
-            val canAct=myTurn && !moving
-            Text(stringResource(when {
-                s.busy->R.string.friend_confirming_move
-                state.outcome==Outcome.TIGERS_WIN->R.string.win_tigers
-                state.outcome==Outcome.LAMBS_WIN->R.string.win_lambs
-                state.outcome!=Outcome.ONGOING->R.string.draw
-                s.paused->R.string.paused
-                myTurn->R.string.your_turn
-                else->R.string.friend_wait_turn
-            }))
-            Text(stringResource(R.string.reserve_compact,state.position.reserve)+" · "+stringResource(R.string.captured_compact,state.position.captured))
-            key(m.id) {
-                BoardView(state,s.selected,if(canAct) GameEngine.available(state) else emptyList(),null,model::tap,
-                    Modifier.fillMaxWidth().aspectRatio(1.1f), (state.events.lastOrNull() as? Event.Played)?.action,
-                    reducedMotion=preferences.reduced,motionEnabled=!s.paused,onMotionRunning={moving=it})
-            }
-            if(state.outcome==Outcome.ONGOING && s.phase=="session" && !s.busy) {
-                if(s.offer) {
-                    Text(stringResource(R.string.friend_draw_pending))
-                    if(!s.offerer) Button(onClick={ model.answer(true) }) { Text(stringResource(R.string.friend_accept_draw)) }
-                    OutlinedButton(onClick={ model.answer(false) }) { Text(stringResource(if(s.offerer) R.string.friend_withdraw else R.string.friend_decline)) }
-                } else if(s.paused) {
-                    Button(onClick=model::ready) { Text(stringResource(if(s.ready) R.string.friend_cancel_ready else R.string.resume)) }
-                    Text(stringResource(if(s.peerReady) R.string.friend_peer_ready else R.string.friend_peer_waiting))
-                } else {
-                    OutlinedButton(onClick=model::pause) { Text(stringResource(R.string.friend_pause)) }
-                    OutlinedButton(onClick={ draw=true },enabled=canAct) { Text(stringResource(R.string.friend_offer_draw)) }
-                }
-            }
-            if(state.outcome!=Outcome.ONGOING) {
-                Text(stringResource(when(state.outcome) { Outcome.TIGERS_WIN->R.string.reason_tigers; Outcome.LAMBS_WIN->R.string.reason_lambs; Outcome.REPETITION_DRAW->R.string.reason_repetition; else->R.string.reason_agreement }))
-                if(s.phase=="session" && !s.busy) {
-                    Button(onClick={ model.rematch(false) }) { Text(stringResource(R.string.play_again)) }
-                    OutlinedButton(onClick={ model.rematch(true) }) { Text(stringResource(R.string.switch_sides)) }
-                }
-            }
-            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick={ model.pause(); onRules() }) { Text(stringResource(R.string.rules)) }
-                TextButton(onClick={ model.pause(); onSettings() }) { Text(stringResource(R.string.settings)) }
-            }
-            TextButton(onClick={ points=!points }) { Text(stringResource(R.string.point_picker)) }
-            if(points) PointPicker(state,s.selected,if(canAct) GameEngine.available(state) else emptyList(),canAct,model::tap)
-        }
-        if(s.busy) Text(stringResource(R.string.friend_confirming_move))
-        if(s.phase !in listOf("idle","permission","error","disconnected","discovery_timeout","connection_timeout","confirmation_timeout"))
-            TextButton(onClick=model::stop) { Text(stringResource(R.string.friend_disconnect)) }
+    FriendContent(s, preferences, model.label, FriendActions(
+        start = ::start, connect = model::connect, confirm = model::confirm, stop = model::stop,
+        select = model::select, ready = model::ready, tap = model::tap, pause = model::pause,
+        rematch = model::rematch, offer = model::offer, answer = model::answer,
+        back = { if (!model.requestLeave()) onHome() }, home = onHome,
+        cancelLeave = model::cancelLeave,
+        rules = { model.pause(); onRules() }, settings = { model.pause(); onSettings() },
+    ))
+}
+
+/** UI callbacks keep pairing, persistence and match authority in FriendViewModel. */
+internal data class FriendActions(
+    val start: (Boolean, Boolean) -> Unit = { _, _ -> },
+    val connect: (String) -> Unit = {}, val confirm: () -> Unit = {}, val stop: () -> Unit = {},
+    val select: (Side) -> Unit = {}, val ready: () -> Unit = {}, val tap: (Node) -> Unit = {},
+    val pause: () -> Unit = {}, val rematch: (Boolean) -> Unit = {}, val offer: () -> Unit = {},
+    val answer: (Boolean) -> Unit = {}, val back: () -> Unit = {}, val home: () -> Unit = {},
+    val cancelLeave: () -> Unit = {}, val rules: () -> Unit = {}, val settings: () -> Unit = {},
+)
+
+private val retryPhases = setOf("idle", "permission", "error", "disconnected", "discovery_timeout",
+    "connection_timeout", "confirmation_timeout")
+
+private fun connectionMessage(phase: String) = when (phase) {
+    "hosting" -> R.string.friend_hosting; "joining" -> R.string.friend_joining
+    "confirm" -> R.string.friend_compare; "confirm_wait" -> R.string.friend_confirm_wait
+    "connecting" -> R.string.friend_connecting; "sync" -> R.string.friend_sync
+    "discovery_timeout" -> R.string.friend_discovery_timeout
+    "connection_timeout" -> R.string.friend_connection_timeout
+    "confirmation_timeout" -> R.string.friend_confirmation_timeout
+    "permission" -> R.string.friend_permission; "error" -> R.string.friend_error
+    "disconnected" -> R.string.friend_disconnected; "session" -> R.string.friend_connected
+    else -> R.string.friend_intro
+}
+
+@Composable
+internal fun FriendContent(snapshot: FriendUi, preferences: Preferences, label: String, actions: FriendActions) {
+    // The coordinator withholds its match during an unsettled transaction. Keep displaying
+    // the last confirmed position while busy, never an unconfirmed candidate or a setup screen.
+    var lastConfirmed by remember { mutableStateOf(snapshot.match) }
+    SideEffect {
+        if (snapshot.match != null || (snapshot.phase == "session" && !snapshot.busy)) lastConfirmed = snapshot.match
     }
-    if(s.leaving) AlertDialog(onDismissRequest=model::cancelLeave,
-        title={ Text(stringResource(R.string.leave_title)) }, text={ Text(stringResource(R.string.friend_leave_body)) },
-        confirmButton={ TextButton(onClick=onHome) { Text(stringResource(R.string.save_home)) } },
-        dismissButton={ TextButton(onClick=model::cancelLeave) { Text(stringResource(R.string.keep_playing)) } })
-    if(replace) AlertDialog(onDismissRequest={ replace=false },title={ Text(stringResource(R.string.replace_title)) },
-        text={ Text(stringResource(R.string.friend_replace)) },
-        confirmButton={ TextButton(onClick={ replace=false; start(host,false) }) { Text(stringResource(R.string.replace)) } },
-        dismissButton={ TextButton(onClick={ replace=false }) { Text(stringResource(R.string.cancel)) } })
-    if(draw) AlertDialog(onDismissRequest={ draw=false },text={ Text(stringResource(R.string.friend_draw_question)) },
-        confirmButton={ TextButton(onClick={ draw=false; model.offer() }) { Text(stringResource(R.string.friend_send_offer)) } },
-        dismissButton={ TextButton(onClick={ draw=false }) { Text(stringResource(R.string.cancel)) } })
+    val s = if (snapshot.match == null &&
+        ((snapshot.busy && snapshot.phase == "session") || snapshot.phase in retryPhases))
+        snapshot.copy(match = lastConfirmed) else snapshot
+    var menu by remember { mutableStateOf(false) }
+    var replaceHost by remember { mutableStateOf<Boolean?>(null) }
+    var draw by remember { mutableStateOf(false) }
+    var points by remember { mutableStateOf(false) }
+    var pairing by remember { mutableStateOf(false) }
+    var moving by remember(s.match?.id) { mutableStateOf(false) }
+    var resultDismissed by rememberSaveable(s.match?.id) { mutableStateOf(false) }
+    var errorDismissed by remember(s.phase, s.error) { mutableStateOf(false) }
+    var offerDismissed by remember(s.offer, s.offerer) { mutableStateOf(false) }
+    val match = s.match.takeUnless { pairing }
+    val finished = match != null && match.state.outcome != Outcome.ONGOING
+    var resultReady by remember(match?.id, finished) { mutableStateOf(false) }
+    LaunchedEffect(match?.id, finished) {
+        if (finished) {
+            if (!preferences.reduced) kotlinx.coroutines.delay(400)
+            resultReady = true
+        }
+    }
+    LaunchedEffect(s.match?.id, s.phase) { if (s.phase == "session") pairing = false }
+    val canAct = match != null && s.playable && !s.busy && !s.paused && !s.offer &&
+        s.phase == "session" && !finished && match.state.sideToMove == match.side(s.player) && !moving
+    LaunchedEffect(canAct) { if (!canAct) draw = false }
+    LaunchedEffect(match?.id, finished) { if (match == null || finished) points = false }
+    fun start(host: Boolean, resume: Boolean) { pairing = true; lastConfirmed = null; actions.start(host, resume) }
+    fun disconnect() { pairing = true; actions.stop() }
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = actions.back) {
+                Icon(painterResource(R.drawable.ic_back), null, Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.back))
+            }
+            Text(stringResource(R.string.play_title), Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Box {
+                TextButton(onClick = { menu = true }, modifier = Modifier.testTag("friend-menu")) {
+                    Text(stringResource(R.string.game_menu))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    if (finished) DropdownMenuItem(text = { Text(stringResource(R.string.view_result)) },
+                        onClick = { menu = false; resultDismissed = false })
+                    if (match != null && !finished) DropdownMenuItem(
+                        text = { Text(stringResource(R.string.friend_offer_draw)) }, enabled = canAct,
+                        onClick = { menu = false; draw = true })
+                    // Retain the existing accessible alternative without taking space from the board.
+                    if (match != null) DropdownMenuItem(text = { Text(stringResource(R.string.point_picker)) },
+                        onClick = { menu = false; points = true })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.rules)) }, enabled = !s.busy,
+                        onClick = { menu = false; actions.rules() })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, enabled = !s.busy,
+                        onClick = { menu = false; actions.settings() })
+                    if (s.phase !in retryPhases || match != null) DropdownMenuItem(
+                        text = { Text(stringResource(R.string.friend_disconnect)) },
+                        onClick = { menu = false; disconnect() })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.save_home)) },
+                        onClick = { menu = false; actions.back() })
+                }
+            }
+        }
+        if (match == null) {
+            FriendPairing(s, label, actions, onStart = { host ->
+                if (s.saved) replaceHost = host else start(host, false)
+            }, onContinue = { start(s.savedHost, true) }, onStop = ::disconnect)
+        } else {
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val scrolling = maxHeight < 680.dp || LocalDensity.current.fontScale > 1.3f
+                val boardHeight = (maxWidth - 36.dp) * .8f + 60.dp
+                val railWidth = if (maxWidth >= 840.dp) 300.dp else 244.dp
+                val board: @Composable (Modifier) -> Unit = { modifier ->
+                    key(match.id) {
+                        BoardView(match.state, s.selected,
+                            if (canAct) GameEngine.available(match.state) else emptyList(), null, actions.tap,
+                            modifier.testTag("friend-board"),
+                            last = (match.state.events.lastOrNull() as? Event.Played)?.action,
+                            immersive = true, reducedMotion = preferences.reduced,
+                            motionEnabled = s.phase == "session" && !s.paused,
+                            onMotionRunning = { moving = it }, showPointLabels = false)
+                    }
+                }
+                val controls: @Composable (Modifier) -> Unit = { modifier ->
+                    FriendMatchControls(s, finished, modifier,
+                        onResult = { resultDismissed = false }, onOffer = { offerDismissed = false },
+                        onContinue = { start(s.savedHost, true) }, actions = actions)
+                }
+                if (maxWidth > maxHeight) Row(Modifier.fillMaxSize()) {
+                    board(Modifier.weight(1f).fillMaxHeight())
+                    Column(Modifier.width(railWidth).fillMaxHeight()
+                        .verticalScroll(rememberScrollState()).padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        FriendIdentity(match.side(s.player))
+                        FriendTurn(s)
+                        TabletopCounts(match.state)
+                        controls(Modifier)
+                    }
+                } else Column(Modifier.fillMaxSize().then(if (scrolling)
+                    Modifier.verticalScroll(rememberScrollState()) else Modifier)) {
+                    FriendIdentity(match.side(s.player), Modifier.padding(horizontal = 18.dp, vertical = 10.dp))
+                    FriendTurn(s, Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
+                    board(if (scrolling) Modifier.fillMaxWidth().height(boardHeight)
+                        else Modifier.fillMaxWidth().weight(1f))
+                    TabletopCounts(match.state, Modifier.padding(horizontal = 18.dp, vertical = 14.dp))
+                    controls(Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
+                }
+            }
+        }
+    }
+    if (s.leaving) AlertDialog(onDismissRequest = actions.cancelLeave,
+        title = { Text(stringResource(R.string.leave_title)) }, text = { Text(stringResource(R.string.friend_leave_body)) },
+        confirmButton = { TextButton(onClick = actions.home) { Text(stringResource(R.string.save_home)) } },
+        dismissButton = { TextButton(onClick = actions.cancelLeave) { Text(stringResource(R.string.keep_playing)) } })
+    else if (s.error && s.phase != "idle" && !errorDismissed) AlertDialog(onDismissRequest = { errorDismissed = true },
+        modifier = Modifier.testTag("friend-error-dialog"),
+        text = { Text(stringResource(connectionMessage(s.phase)), Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = { errorDismissed = true }) { Text(stringResource(android.R.string.ok)) } })
+    else if (finished && resultReady && !resultDismissed) {
+        FriendResult(s, actions, onDismiss = { resultDismissed = true }, onContinue = { start(s.savedHost, true) })
+    } else if (s.offer && !offerDismissed) AlertDialog(onDismissRequest = { offerDismissed = true },
+        modifier = Modifier.testTag("friend-offer-dialog"),
+        text = { Text(stringResource(R.string.friend_draw_pending)) },
+        confirmButton = {
+            if (!s.offerer) TextButton(onClick = { actions.answer(true) }, enabled = s.phase == "session" && !s.busy) {
+                Text(stringResource(R.string.friend_accept_draw))
+            }
+        }, dismissButton = {
+            TextButton(onClick = { actions.answer(false) }, enabled = s.phase == "session" && !s.busy) {
+                Text(stringResource(if (s.offerer) R.string.friend_withdraw else R.string.friend_decline))
+            }
+        })
+    if (replaceHost != null) AlertDialog(onDismissRequest = { replaceHost = null },
+        title = { Text(stringResource(R.string.replace_title)) }, text = { Text(stringResource(R.string.friend_replace)) },
+        confirmButton = { TextButton(onClick = { val host = replaceHost!!; replaceHost = null; start(host, false) }) {
+            Text(stringResource(R.string.replace))
+        } }, dismissButton = { TextButton(onClick = { replaceHost = null }) { Text(stringResource(R.string.cancel)) } })
+    if (draw) AlertDialog(onDismissRequest = { draw = false }, text = { Text(stringResource(R.string.friend_draw_question)) },
+        confirmButton = { TextButton(onClick = { draw = false; actions.offer() }, enabled = canAct) {
+            Text(stringResource(R.string.friend_send_offer))
+        } }, dismissButton = { TextButton(onClick = { draw = false }) { Text(stringResource(R.string.cancel)) } })
+    if (points && match != null) Dialog(onDismissRequest = { points = false }) {
+        Surface(shape = RoundedCornerShape(24.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
+                PointPicker(match.state, s.selected, if (canAct) GameEngine.available(match.state) else emptyList(), canAct, actions.tap)
+                TextButton(onClick = { points = false }) { Text(stringResource(R.string.view_board)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FriendPairing(s: FriendUi, label: String, actions: FriendActions,
+    onStart: (Boolean) -> Unit, onContinue: () -> Unit, onStop: () -> Unit) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(stringResource(R.string.play_friend), style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            AnimalIcon(Side.LAMB, Modifier.size(48.dp)); AnimalIcon(Side.TIGER, Modifier.size(48.dp))
+            Text(stringResource(R.string.play_friend_subtitle), style = MaterialTheme.typography.titleMedium)
+        }
+        Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = .09f)) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(if (s.busy && s.phase == "session") R.string.friend_confirming_move
+                    else connectionMessage(s.phase)), Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                if (s.phase == "hosting") Text(label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                if (s.phase in setOf("hosting", "joining", "connecting", "sync", "confirm_wait") || s.busy)
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (s.code.isNotEmpty()) {
+                    Text(s.peerName, style = MaterialTheme.typography.titleMedium)
+                    Text(s.code, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag("friend-confirmation-code"))
+                    Button(onClick = actions.confirm, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.friend_confirm))
+                    }
+                    OutlinedButton(onClick = onStop, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.friend_reject)) }
+                }
+            }
+        }
+        if (s.phase in retryPhases) {
+            if (s.saved) Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                Text(stringResource(R.string.friend_continue))
+            }
+            FriendStartCard(R.string.friend_host, R.string.friend_host_description, true) { onStart(true) }
+            FriendStartCard(R.string.friend_join, R.string.friend_join_description, false) { onStart(false) }
+        }
+        s.peers.forEach { (id, name) ->
+            OutlinedButton(onClick = { actions.connect(id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(name) }
+        }
+        if (s.phase == "session" && s.match == null) {
+            Text(stringResource(R.string.friend_sides), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            FlowRow(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp), maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2) {
+                Side.entries.forEach { side ->
+                    val selected = s.localSide == side
+                    Surface(Modifier.weight(1f).clip(RoundedCornerShape(18.dp))
+                        .selectable(selected, enabled = !s.busy, role = Role.RadioButton,
+                        onClick = { actions.select(side) }).testTag("friend-side-${side.name}"),
+                        shape = RoundedCornerShape(18.dp),
+                        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        border = BorderStroke(if (selected) 2.dp else 1.dp,
+                            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
+                        Row(Modifier.heightIn(min = 64.dp).padding(10.dp), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AnimalIcon(side, Modifier.size(40.dp))
+                            Text(stringResource(if (side == Side.LAMB) R.string.lamb else R.string.tiger), Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            if (selected) Icon(painterResource(R.drawable.ic_check), null, Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+            Text(stringResource(R.string.friend_peer_side, s.peerSide?.let {
+                stringResource(if (it == Side.LAMB) R.string.lamb else R.string.tiger)
+            } ?: stringResource(R.string.friend_choosing)))
+            if (s.localSide != null && s.localSide == s.peerSide)
+                Text(stringResource(R.string.friend_side_conflict), color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.friend_lambs_first), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = actions.ready, enabled = !s.busy && s.localSide != null && s.peerSide != null && s.localSide != s.peerSide,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("friend-ready")) {
+                Text(stringResource(if (s.ready) R.string.friend_cancel_ready else R.string.friend_ready))
+            }
+            Text(stringResource(if (s.peerReady) R.string.friend_peer_ready else R.string.friend_peer_waiting))
+        }
+        if (s.phase !in retryPhases && s.code.isEmpty()) TextButton(onClick = onStop) {
+            Text(stringResource(R.string.friend_disconnect))
+        }
+    }
+}
+
+@Composable
+private fun FriendStartCard(title: Int, description: Int, host: Boolean, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth().testTag(if (host) "friend-host" else "friend-join"),
+        shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(description), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun FriendIdentity(side: Side, modifier: Modifier = Modifier) {
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+            AnimalIcon(side, Modifier.size(36.dp)); Spacer(Modifier.width(8.dp))
+            Text(stringResource(if (side == Side.LAMB) R.string.you_lambs_compact else R.string.you_tigers_compact),
+                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        }
+        Row(Modifier.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+            AnimalIcon(side.other(), Modifier.size(36.dp)); Spacer(Modifier.width(8.dp))
+            Column {
+                Text(stringResource(R.string.play_friend), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(if (side.other() == Side.LAMB) R.string.lamb else R.string.tiger),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun FriendTurn(s: FriendUi, modifier: Modifier = Modifier) {
+    val match = s.match ?: return
+    val state = match.state
+    val prompt = when {
+        s.phase != "session" -> stringResource(R.string.friend_disconnected_compact)
+        s.busy -> stringResource(R.string.friend_confirming_move)
+        state.outcome == Outcome.TIGERS_WIN -> stringResource(R.string.win_tigers)
+        state.outcome == Outcome.LAMBS_WIN -> stringResource(R.string.win_lambs)
+        state.outcome != Outcome.ONGOING -> stringResource(R.string.draw)
+        s.offer -> stringResource(R.string.friend_draw_pending)
+        s.paused -> stringResource(R.string.turn_prompt, stringResource(R.string.paused),
+            stringResource(if (s.peerReady) R.string.friend_peer_ready else R.string.friend_peer_waiting))
+        s.playable && state.sideToMove == match.side(s.player) -> stringResource(R.string.turn_prompt,
+            stringResource(R.string.your_turn), stringResource(if (state.position.phase == Phase.PLACEMENT &&
+                match.side(s.player) == Side.LAMB) R.string.place_compact else R.string.move_compact))
+        else -> stringResource(R.string.friend_wait_turn)
+    }
+    val spoken = listOf(prompt, stringResource(if (state.position.phase == Phase.PLACEMENT)
+        R.string.phase_placement else R.string.phase_movement), stringResource(R.string.reserve_count, state.position.reserve),
+        stringResource(R.string.captured_count, state.position.captured)).joinToString(". ")
+    val height = with(LocalDensity.current) { 22.sp.toDp() * 2 } + 12.dp
+    Surface(modifier.fillMaxWidth().height(height).testTag("friend-turn"), shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = .09f), contentColor = MaterialTheme.colorScheme.primary) {
+        key(prompt) {
+            Box(Modifier.padding(horizontal = 12.dp, vertical = 6.dp).verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center) {
+                Text(prompt, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, lineHeight = 22.sp),
+                    fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { contentDescription = spoken; liveRegion = LiveRegionMode.Polite })
+            }
+        }
+    }
+}
+
+@Composable
+private fun FriendMatchControls(s: FriendUi, finished: Boolean, modifier: Modifier = Modifier,
+    onResult: () -> Unit, onOffer: () -> Unit, onContinue: () -> Unit, actions: FriendActions) {
+    val label = when {
+        finished -> R.string.view_result
+        s.phase != "session" -> R.string.friend_continue
+        s.offer -> R.string.friend_review_draw
+        s.paused -> if (s.ready) R.string.friend_cancel_ready else R.string.resume
+        else -> R.string.friend_pause
+    }
+    OutlinedButton(onClick = {
+        when {
+            finished -> onResult()
+            s.phase != "session" -> onContinue()
+            s.offer -> onOffer()
+            s.paused -> actions.ready()
+            else -> actions.pause()
+        }
+    }, enabled = finished || !s.busy, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp)
+        .testTag("friend-match-action"), shape = RoundedCornerShape(12.dp)) {
+        Text(stringResource(label))
+    }
+}
+
+@Composable
+private fun FriendResult(s: FriendUi, actions: FriendActions, onDismiss: () -> Unit, onContinue: () -> Unit) {
+    val match = s.match ?: return
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = RoundedCornerShape(28.dp), tonalElevation = 6.dp) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp)
+                .testTag("friend-result-dialog"), horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(when (match.state.outcome) {
+                    Outcome.TIGERS_WIN -> R.string.win_tigers; Outcome.LAMBS_WIN -> R.string.win_lambs; else -> R.string.draw
+                }), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { heading() })
+                Text(stringResource(when (match.state.outcome) {
+                    Outcome.TIGERS_WIN -> R.string.reason_tigers; Outcome.LAMBS_WIN -> R.string.reason_lambs
+                    Outcome.REPETITION_DRAW -> R.string.reason_repetition; else -> R.string.reason_agreement
+                }), textAlign = TextAlign.Center)
+                if (s.phase == "session") {
+                    Button(onClick = { actions.rematch(false) }, enabled = !s.busy,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.play_again)) }
+                    OutlinedButton(onClick = { actions.rematch(true) }, enabled = !s.busy,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.switch_sides)) }
+                } else {
+                    Text(stringResource(R.string.friend_disconnected))
+                    Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.friend_continue))
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.view_board)) }
+                    TextButton(onClick = actions.home) { Text(stringResource(R.string.home)) }
+                }
+            }
+        }
+    }
 }

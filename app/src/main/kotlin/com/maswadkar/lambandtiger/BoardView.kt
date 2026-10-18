@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -31,7 +32,16 @@ import kotlin.math.sin
 
 private class BoardHistory(var state: GameState)
 
-/** Use the approved transparent sprite sheet directly, without redrawing the characters. */
+// Recolour the original lamb without changing its alpha, silhouette or facial detail.
+// The ivory wool becomes slate blue; the tiger keeps the original sprite colours.
+private val lambColour = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+    .44f, 0f, 0f, 0f, 0f,
+    0f, .64f, 0f, 0f, 0f,
+    0f, 0f, .90f, 0f, 0f,
+    0f, 0f, 0f, 1f, 0f,
+)))
+
+/** Use the approved transparent sprite sheet, with a contrast tint for the lamb. */
 private fun DrawScope.animal(bitmap: ImageBitmap, piece: Occupant, center: Offset,
     width: Float, alpha: Float = 1f, halo: Boolean = false) {
     val origin = if (piece == Occupant.LAMB) IntOffset(140, 190) else IntOffset(1040, 215)
@@ -46,7 +56,8 @@ private fun DrawScope.animal(bitmap: ImageBitmap, piece: Occupant, center: Offse
                 alpha = alpha, colorFilter = ColorFilter.tint(Color(0xFFF7F3EA)))
         }
     }
-    drawImage(bitmap, origin, source, offset, destination, alpha = alpha)
+    drawImage(bitmap, origin, source, offset, destination, alpha = alpha,
+        colorFilter = if (piece == Occupant.LAMB) lambColour else null)
 }
 
 @Composable
@@ -71,6 +82,7 @@ internal fun BoardView(
     reducedMotion: Boolean = true,
     motionEnabled: Boolean = true,
     onMotionRunning: (Boolean) -> Unit = {},
+    showPointLabels: Boolean = true,
 ) {
     val atlas = ImageBitmap.imageResource(R.drawable.animal_pieces)
     val lines = MaterialTheme.colorScheme.primary
@@ -120,6 +132,20 @@ internal fun BoardView(
         val action = active?.action
         val t = progress.value.coerceIn(0f,1f)
         Board.edges.forEach { drawLine(lines, p(it.from), p(it.to), 1.5.dp.toPx()) }
+        // Unlabelled Solo hints show the suggested direction on the actual board.
+        if (!showPointLabels && hint?.origin != null) {
+            val from = p(hint.origin!!)
+            val to = p(hint.destination)
+            val direction = (to - from) / (to - from).getDistance()
+            val tip = from + (to - from) * .65f
+            val wing = Offset(-direction.y, direction.x) * 4.dp.toPx()
+            val tail = tip - direction * 8.dp.toPx()
+            drawLine(lines, from, to, 2.5.dp.toPx())
+            drawLine(lines, tip, tail + wing, 2.5.dp.toPx())
+            drawLine(lines, tip, tail - wing, 2.5.dp.toPx())
+            drawCircle(lines, diameter / 2 + 4.dp.toPx(), from,
+                style = Stroke(2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx()))))
+        }
         val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             color = android.graphics.Color.rgb((ink.red*255).toInt(), (ink.green*255).toInt(), (ink.blue*255).toInt())
             textSize = 11.sp.toPx()
@@ -144,7 +170,7 @@ internal fun BoardView(
                 drawLine(lines,c-Offset(r,0f),c+Offset(r,0f),1.8.dp.toPx())
                 drawLine(lines,c-Offset(0f,r),c+Offset(0f,r),1.8.dp.toPx())
             }
-            if (fontScale <= 1.3f)
+            if (showPointLabels && fontScale <= 1.3f)
                 drawContext.canvas.nativeCanvas.drawText(node.name,c.x,c.y+diameter/2+12.dp.toPx(),paint)
             val piece = state.position.at(node)
             if (piece != Occupant.EMPTY && node != action?.destination)

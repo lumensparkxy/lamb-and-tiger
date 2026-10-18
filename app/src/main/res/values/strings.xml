@@ -1,4 +1,12 @@
 <resources>
+    <string name="you_lambs_compact">You · Lambs</string>
+    <string name="you_tigers_compact">You · Tigers</string>
+    <string name="turn_prompt">%1$s · %2$s</string>
+    <string name="to_place_compact">to place</string>
+    <string name="captured_suffix">captured</string>
+    <string name="hint_place_visual">Try placing on the ringed point.</string>
+    <string name="hint_step_visual">Try moving along the arrow.</string>
+    <string name="hint_capture_visual">Try capturing along the arrow.</string>
     <string name="game_menu">Menu</string>
     <string name="choose_point">Choose a point</string>
     <string name="reserve_label">Lambs to place</string>
@@ -135,6 +143,10 @@
     <string name="play_title">Lamb and Tiger</string>
     <string name="play_board_label">23-point board. Tap a piece or an empty point to play.</string>
     <string name="friend_host">Host Game</string>
+    <string name="friend_host_description">Create a session for your friend to join.</string>
+    <string name="friend_join_description">Find the session on your friend’s phone.</string>
+    <string name="friend_disconnected_compact">Disconnected · reconnect to continue</string>
+    <string name="friend_review_draw">Review draw offer</string>
     <string name="friend_join">Join Game</string>
     <string name="friend_continue">Continue Nearby game</string>
     <string name="friend_intro">Play with a friend nearby. Choose Host on one phone and Join on the other.</string>
@@ -176,4 +188,14 @@
     <string name="friend_discovery_timeout">Nearby search timed out. Keep both devices unlocked and nearby, then try Host and Join again.</string>
     <string name="friend_connection_timeout">Could not connect to the selected device. Keep both devices unlocked with Wi-Fi and Bluetooth on, then try again.</string>
     <string name="friend_confirmation_timeout">Code confirmation timed out. Connect again and confirm the matching code on both devices.</string>
+    <string name="difficulty_title_0">Sleepy Whiskers</string>
+    <string name="difficulty_level_0">Very Easy</string>
+    <string name="difficulty_title_1">Baa-sic Instinct</string>
+    <string name="difficulty_level_1">Easy</string>
+    <string name="difficulty_title_2">Sneaky Paws</string>
+    <string name="difficulty_level_2">Medium</string>
+    <string name="difficulty_title_3">Woolly Schemer</string>
+    <string name="difficulty_level_3">Hard</string>
+    <string name="difficulty_title_4">Grandmaster Growl</string>
+    <string name="difficulty_level_4">Expert</string>
 </resources>
