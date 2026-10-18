@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+        <TextView style="@style/DiagnosticHeading" android:text="@string/app_name" />
+        <TextView style="@style/DiagnosticText" android:text="@string/scope_notice" />
+        <TextView android:id="@+id/device_status" style="@style/DiagnosticText" />
+        <TextView style="@style/DiagnosticHeading" android:text="@string/services_heading" />
+        <TextView android:id="@+id/services_status" style="@style/DiagnosticText" />
+        <TextView style="@style/DiagnosticHeading" android:text="@string/capabilities_heading" />
+        <TextView android:id="@+id/capabilities_status" style="@style/DiagnosticText" />
+        <TextView style="@style/DiagnosticText" android:text="@string/capabilities_notice" />
+        <TextView style="@style/DiagnosticHeading" android:text="@string/permissions_heading" />
+        <TextView android:id="@+id/permissions_status" style="@style/DiagnosticText" />
+        <TextView style="@style/DiagnosticText" android:text="@string/permissions_notice" />
+        <Button android:id="@+id/refresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/refresh" />
+    </LinearLayout>
+</ScrollView>

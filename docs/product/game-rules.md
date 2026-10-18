@@ -1,5 +1,8 @@
 # 23-point Aadu Puli Aatam board and game rules
 
+Current implementation status: D041 authorizes continuous Solo-first work; see the [engine/app verification record](../implementation/solo-first-evidence.md). Statements below about unimplemented tests and NEXT describe the original specification-review boundary. The approved rules are unchanged.
+
+
 Status: **approved game-rules baseline for issue #1 (D017)**, 2026-10-17. D010 selects the board; D011–D016 define setup, turns, movement, captures, wins, draws, and invalid-state handling. D017 approves the complete mapping, specification, and reviewed examples.
 Scope: issue #1, M1. No engine or Android implementation is part of this step.
 
