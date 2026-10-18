@@ -53,7 +53,7 @@
     <string name="hint_step">%1$s → %2$s முயலுங்கள்.</string>
     <string name="hint_capture">%1$s → %2$s; %3$s புள்ளியில் உள்ள ஆட்டைப் பிடிக்கலாம்.</string>
     <string name="last_move">கடைசி நகர்வு: %1$s</string>
-    <string name="board_label">23 புள்ளிப் பலகை. கீழுள்ள புள்ளி பொத்தான்களாலும் விளையாடலாம்.</string>
+    <string name="board_label">23 புள்ளிப் பலகை.</string>
     <string name="point_picker">பலகைப் புள்ளியைத் தேர்ந்தெடு</string>
     <string name="point_description">புள்ளி %1$s, %2$s, %3$s</string>
     <string name="empty">காலி</string>

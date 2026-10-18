@@ -1,6 +1,7 @@
 package com.maswadkar.lambandtiger
 
 import androidx.compose.ui.test.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.maswadkar.lambandtiger.game.*
 import org.junit.Assert.*
@@ -62,7 +63,9 @@ class SoloFlowTest {
         rule.onNodeWithTag("controls-panel").assertDoesNotExist()
         rule.onNodeWithTag("show-controls").performClick()
         rule.onNodeWithContentDescription("Point B, empty, available destination")
-            .performScrollTo().performClick()
+            .performScrollTo().assertIsNotSelected()
+            .assertHeightIsAtLeast(48.dp)
+            .performClick()
         rule.waitUntil(10000) { vm.ui.value.match?.state?.eventCount == 2 && !vm.ui.value.busy }
         rule.onNodeWithTag("hide-controls").performClick()
         assertEquals(before.id, vm.ui.value.match!!.id)
