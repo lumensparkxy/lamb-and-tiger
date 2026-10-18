@@ -89,13 +89,13 @@ object MatchCodec {
             input.action().also { require(input.available() == 0) }
         }
 
-    private fun writeState(out: DataOutputStream, s: GameState) {
+    private fun writeState(out: DataOutputStream, s: GameState, nearby: Boolean = false) {
         require(!s.isFixture) { "Fixture cannot be saved" }
         out.text(s.ruleset)
         out.writeInt(s.eventCount)
         for (e in s.events) when (e) {
             is Event.Played -> out.action(e.action)
-            Event.Agreement -> error("Solo agreement forbidden")
+            Event.Agreement -> { require(nearby) { "Solo agreement forbidden" }; out.writeByte(4) }
         }
         out.position(s.position)
         out.text(s.outcome.name)
@@ -116,13 +116,17 @@ object MatchCodec {
         }
     }
 
-    private fun readState(input: DataInputStream): GameState {
+    private fun readState(input: DataInputStream, nearby: Boolean = false): GameState {
         val ruleset = input.text()
         val count = input.readInt()
-        require(count >= 0 && count <= input.available() / 2)
-        val events = List(count) { Event.Played(input.action()) }
+        require(count >= 0 && count <= input.available())
+        val events = List(count) {
+            input.mark(1)
+            if (input.readUnsignedByte() == 4) { require(nearby); Event.Agreement }
+            else { input.reset(); Event.Played(input.action()) }
+        }
         val state =
-            (GameEngine.replay(events, ruleset) as? Transition.Applied)?.state
+            (GameEngine.replay(events, ruleset, allowAgreement = nearby) as? Transition.Applied)?.state
                 ?: error("Invalid history")
         require(state.position == input.position()) { "Snapshot mismatch" }
         require(state.outcome.name == input.text()) { "Outcome mismatch" }
@@ -147,6 +151,15 @@ object MatchCodec {
                 }
             }
             .toByteArray()
+
+    fun nearbyState(s: GameState): ByteArray = ByteArrayOutputStream().also {
+        DataOutputStream(it).use { out -> out.writeInt(2); writeState(out, s, true) }
+    }.toByteArray()
+
+    fun readNearbyState(bytes: ByteArray): GameState = DataInputStream(ByteArrayInputStream(bytes)).use {
+        require(it.readInt() == 2)
+        readState(it, true).also { _ -> require(it.available() == 0) }
+    }
 
     fun digest(s: GameState): String =
         MessageDigest.getInstance("SHA-256").digest(canonical(s)).joinToString("") {

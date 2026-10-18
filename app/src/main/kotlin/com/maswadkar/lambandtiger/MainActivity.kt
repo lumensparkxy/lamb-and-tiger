@@ -18,13 +18,16 @@ class MainActivity : ComponentActivity() {
         setContent { LambAndTiger(model) }
     }
 
+    private val friend by lazy { ViewModelProvider(this)[com.maswadkar.lambandtiger.friend.FriendViewModel::class.java] }
+
     override fun onStart() {
         super.onStart()
         model.foreground(true)
+        friend.foreground(true)
     }
 
     override fun onStop() {
-        if (!isChangingConfigurations) model.foreground(false)
+        if (!isChangingConfigurations) { model.foreground(false); friend.foreground(false) }
         super.onStop()
     }
 

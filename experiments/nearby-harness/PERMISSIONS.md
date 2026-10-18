@@ -1,8 +1,14 @@
 # Harness permission policy
 
-Resolved for the scaffold on 2026-10-17. Target SDK is 36; minimum SDK is 29. These declarations and diagnostic branches do not establish successful runtime permission handling or Nearby connectivity.
+Resolved for the scaffold on 2026-10-17. Target SDK is 36; minimum SDK is 29. The original policy below is retained as history; the current runtime correction is recorded next. Permission grants alone do not establish connectivity.
 
-## API 32 discrepancy
+## Runtime correction — 2026-10-18
+
+The physical Pixel 9a (API 37, harness target 36) returned `MISSING_PERMISSION_ACCESS_WIFI_STATE` (8032) on Host after all runtime grants. Remove the API-32 caps from the normal `ACCESS_WIFI_STATE` and `CHANGE_WIFI_STATE` permissions. Keep the coarse/fine location caps and the API-33 nearby-Wi-Fi runtime boundary. No additional location or Internet permission was added. Host/Join now requests the runtime permission set; Refresh remains read-only. API 37 is covered by the same target-36 policy and unit test. SDK 37 targeting would require a separate local-network permission review.
+
+[Google status-code reference](https://developers.google.com/android/reference/com/google/android/gms/nearby/connection/ConnectionsStatusCodes) identifies 8032/8033 as missing Wi-Fi state/change-state permissions. The previous capped declarations below describe the initial scaffold, not the corrected manifest.
+
+## Original API 32 discrepancy
 
 The [Nearby setup example](https://developers.google.com/nearby/connections/android/get-started) currently caps location/Wi-Fi declarations at API 31 and labels nearby Wi-Fi from 32. The [Android permission reference](https://developer.android.com/reference/android/Manifest.permission#NEARBY_WIFI_DEVICES) and the installed API 36 `data/api-versions.xml` both identify `NEARBY_WIFI_DEVICES` as introduced in API 33. [Android's Wi-Fi guide](https://developer.android.com/develop/connectivity/wifi/wifi-permissions) retains fine location through API 32 for backward compatibility.
 
@@ -20,7 +26,7 @@ On Android 12/12L, future location requests must request coarse and fine togethe
 
 The harness does not derive physical location. Bluetooth scan and nearby Wi-Fi declarations use `neverForLocation`. Android documents that this flag can filter some BLE beacons, so physical discovery remains a required check. See [Bluetooth permission guidance](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions). Do not add location access above API 32 without new evidence that the chosen Nearby operations require it.
 
-No file/storage, camera, microphone, background location, or foreground-service functionality is needed for this byte-message experiment. No permission requests are implemented in this scaffold. Refresh only reads status; it never launches a permission or Play services repair dialog.
+No file/storage, camera, microphone, background location, or foreground-service functionality is needed for this byte-message experiment. Permission requests were not implemented in the initial scaffold; they are now initiated by Host/Join. Refresh only reads status; it never launches a permission or Play services repair dialog.
 
 ## Verification scope
 

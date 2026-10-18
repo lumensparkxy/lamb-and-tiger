@@ -105,6 +105,8 @@ private val dark =
 @Composable
 fun LambAndTiger(vm: GameViewModel) {
     val s by vm.ui.collectAsStateWithLifecycle()
+    val friend: com.maswadkar.lambandtiger.friend.FriendViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val goBack = { if(s.screen != Screen.NEARBY || !friend.requestLeave()) vm.back() }
     val view = LocalView.current
     val activity =
         androidx.activity.compose.LocalActivity.current as? androidx.activity.ComponentActivity
@@ -149,13 +151,13 @@ fun LambAndTiger(vm: GameViewModel) {
         lastFeedback = s.feedbackTick
     }
     MaterialTheme(colorScheme = if (s.preferences.dark) dark else light) {
-        BackHandler(s.screen != Screen.HOME) { vm.back() }
+        BackHandler(s.screen != Screen.HOME) { goBack() }
         Surface(Modifier.fillMaxSize()) {
             BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
                 val tooSmall =
                     if (maxWidth > maxHeight) maxWidth < 480.dp || maxHeight < 320.dp
                     else maxWidth < 320.dp || maxHeight < 480.dp
-                LaunchedEffect(tooSmall) { if (tooSmall) vm.pause() }
+                LaunchedEffect(tooSmall) { if (tooSmall) { vm.pause(); if(s.screen==Screen.NEARBY) friend.pause() } }
                 if (tooSmall)
                     Column(
                         Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
@@ -171,7 +173,7 @@ fun LambAndTiger(vm: GameViewModel) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (s.screen != Screen.HOME)
-                                TextButton(onClick = vm::back) {
+                                TextButton(onClick = goBack) {
                                     Text(stringResource(R.string.back))
                                 }
                             Text(
@@ -191,14 +193,7 @@ fun LambAndTiger(vm: GameViewModel) {
                             Screen.LEARN -> Learning(vm)
                             Screen.RULES -> QuickRules()
                             Screen.TUTORIAL -> Tutorial(s, vm)
-                            Screen.NEARBY ->
-                                Page {
-                                    Title(R.string.play_friend)
-                                    Text(stringResource(R.string.nearby_deferred))
-                                    Button(onClick = { vm.openSetup() }) {
-                                        Text(stringResource(R.string.play_ai))
-                                    }
-                                }
+                            Screen.NEARBY -> FriendScreen(friend, s.preferences, vm::home, { vm.navigate(Screen.RULES) }, { vm.navigate(Screen.SETTINGS) })
                             Screen.RECOVERY ->
                                 Page {
                                     Title(R.string.recovery_title)
@@ -775,7 +770,7 @@ private fun GameControls(s: UiState, vm: GameViewModel, showStatus: Boolean = tr
 }
 
 @Composable
-private fun BoardView(
+internal fun BoardView(
     state: GameState,
     selected: Node?,
     actions: List<Action>,
@@ -911,7 +906,7 @@ private fun BoardView(
 }
 
 @Composable
-private fun PointPicker(
+internal fun PointPicker(
     state: GameState,
     selected: Node?,
     actions: List<Action>,

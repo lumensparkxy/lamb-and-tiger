@@ -4,7 +4,7 @@
 
 Production Solo-first implementation is authorized under D041; an isolated diagnostic scaffold exists under `experiments/nearby-harness/`. Read `docs/product/brief.md`, `docs/decisions.md`, and `docs/open-questions.md` before making product or architecture changes.
 
-D041 approves the storage/protocol contracts and authorizes continuous Solo-first implementation without per-step NEXT pauses. Follow the approved implementation sequence and verify each stage. Nearby testing and live transport integration remain deferred. D042 authorizes review, commit/push and relevant issue evidence updates for the Solo-first branch. Preserve existing work; merging and release publication remain separate scope boundaries.
+D041 approves the storage/protocol contracts and authorizes continuous Solo-first implementation without per-step NEXT pauses. Follow the approved implementation sequence and verify each stage. D046 resumed the isolated harness; D047 authorizes local production Nearby implementation and focused verification. Two-phone acceptance remains deferred. D042 authorizes review, commit/push and relevant issue evidence updates for the Solo-first branch. Preserve existing work; merging and release publication remain separate scope boundaries.
 
 ## Product authority
 

@@ -12,9 +12,9 @@ D041 approves the storage/protocol contracts and Solo-first sequence and authori
 
 The published specification milestones for [issue #1](https://github.com/lumensparkxy/lamb-and-tiger/issues/1) and [issue #2](https://github.com/lumensparkxy/lamb-and-tiger/issues/2) remain separate from implementation acceptance. D042 authorizes revision-bound implementation evidence updates on issues #3–#14; the issues remain open pending their remaining acceptance and integration gates.
 
-## Deferred Nearby lane
+## Nearby implementation and remaining acceptance
 
-D036/D041 defer further Nearby testing and live integration. Preserve the diagnostic scaffold, smoke evidence and unresolved launch-delay finding. Issues #3/#4/#8 remain incomplete; a Solo implementation does not satisfy their transport criteria.
+D046 resumed the isolated diagnostic harness; D047 authorizes production Nearby implementation. The local development implementation and current limits are recorded in [Nearby evidence](implementation/nearby-evidence.md). Two-phone qualification remains deferred. Preserve the diagnostic scaffold, smoke evidence and unresolved launch-delay finding. Issues #3/#4/#8 remain incomplete; a Solo implementation does not satisfy their transport criteria.
 
 - Which two physical Android phones will be the reference pair, and what Android/Google Play services versions and radio capabilities do they have?
 - Does the bounded two-phone experiment establish the selected transport, permission behaviour, matching-code confirmation and saved-peer continuity?
