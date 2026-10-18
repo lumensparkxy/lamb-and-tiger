@@ -116,4 +116,13 @@
     <string name="move_step">%1$s → %2$s</string>
     <string name="move_capture">%1$s → %2$s (%3$s பிடிக்கப்பட்டது)</string>
     <string name="trap_explanation">இந்த மூன்று புலிகளாலும் நகரவோ பிடிக்கவோ முடியாது. ஐந்து புள்ளிகள் காலியாக இருந்தாலும் ஆடுகளே வெற்றி பெறும்.</string>
+    <string name="controls">கட்டுப்பாடுகள்</string>
+    <string name="show_controls">கட்டுப்பாடுகளைக் காட்டு</string>
+    <string name="hide_controls">கட்டுப்பாடுகளை மறை</string>
+    <string name="reserve_compact">வைக்க வேண்டியவை: %1$d</string>
+    <string name="captured_compact">பிடிக்கப்பட்டவை: %1$d / 5</string>
+    <string name="place_compact">காலியான புள்ளியில் ஓர் ஆட்டை வைக்கவும்</string>
+    <string name="move_compact">காயைத் தேர்ந்தெடுத்து, செல்லும் இடத்தைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="play_title">ஆடும் புலியும்</string>
+    <string name="play_board_label">23 புள்ளிகள் கொண்ட பலகை. புள்ளியைத் தேர்ந்தெடுக்க கட்டுப்பாடுகளைத் திறக்கவும்.</string>
 </resources>

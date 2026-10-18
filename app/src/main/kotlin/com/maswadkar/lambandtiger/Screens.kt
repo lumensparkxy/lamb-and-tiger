@@ -8,6 +8,15 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,6 +34,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -156,7 +166,7 @@ fun LambAndTiger(vm: GameViewModel) {
                     }
                 else
                     Column(Modifier.fillMaxSize()) {
-                        Row(
+                        if (s.screen != Screen.GAME) Row(
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -409,65 +419,215 @@ private fun actionLabel(action: Action): String =
             )
     }
 
+/** The controls are disclosure UI, not a pause: accessible point play stays available
+ * while the panel is open. Rules/Settings retain the coordinator's explicit pause rules. */
 @Composable
 private fun GameScreen(s: UiState, vm: GameViewModel) {
     val match = s.match ?: return
     val state = match.state
+    var controls by rememberSaveable(match.id) { mutableStateOf(false) }
+    LaunchedEffect(state.outcome) {
+        if (state.outcome != Outcome.ONGOING) controls = true
+    }
+    BackHandler(controls) { controls = false }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val wide = maxWidth >= 600.dp
-        if (wide)
-            Row(
-                Modifier.fillMaxSize().padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                Column(Modifier.weight(1.2f).verticalScroll(rememberScrollState())) {
-                    BoardView(
-                        state,
-                        s.selected,
-                        if (vm.playable()) GameEngine.available(state) else emptyList(),
-                        s.hint,
-                        vm::tap,
-                        Modifier.fillMaxWidth().height(300.dp),
-                        last = s.lastAction,
-                    )
-                    PointPicker(
-                        state,
-                        s.selected,
-                        if (vm.playable()) GameEngine.available(state) else emptyList(),
-                        vm.playable(),
-                        vm::tap,
-                    )
-                }
-                Column(
-                    Modifier.weight(1f).verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+        val landscape = maxWidth > maxHeight
+        val statusHeight = maxHeight * .26f
+        val reveal = { controls = true }
+        if (landscape) {
+            Row(Modifier.fillMaxSize()) {
+                PlayBoard(s, vm, Modifier.weight(1f).fillMaxHeight(), reveal)
+                if (controls) PlayControls(s, vm, Modifier.width(300.dp).fillMaxHeight()) { controls = false }
+                else Column(
+                    Modifier.width(160.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    GameControls(s, vm)
+                    Text(stringResource(R.string.play_title), fontWeight = FontWeight.Bold)
+                    TextButton(onClick = vm::back) { Text(stringResource(R.string.back)) }
+                    CompactPlayStatus(s, vm)
+                    MatchIdentity(s)
+                    TextButton(onClick = reveal, modifier = Modifier.testTag("show-controls").heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.show_controls))
+                    }
                 }
             }
-        else
-            Page {
-                GameStatus(s)
-                Card(shape = RoundedCornerShape(20.dp)) {
-                    BoardView(
-                        state,
-                        s.selected,
-                        if (vm.playable()) GameEngine.available(state) else emptyList(),
-                        s.hint,
-                        vm::tap,
-                        Modifier.fillMaxWidth().aspectRatio(1.15f),
-                        last = s.lastAction,
-                    )
+        } else Column(Modifier.fillMaxSize()) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = vm::back) { Text(stringResource(R.string.back)) }
+                Text(stringResource(R.string.play_title), modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
+                if (!controls) TextButton(onClick = reveal,
+                    modifier = Modifier.testTag("show-controls").heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.controls))
                 }
-                GameControls(s, vm, showStatus = false)
-                PointPicker(
-                    state,
-                    s.selected,
+            }
+            Column(Modifier.heightIn(max = statusHeight).verticalScroll(rememberScrollState())) {
+                CompactPlayStatus(s, vm, Modifier.padding(horizontal = 12.dp, vertical = 2.dp))
+                if (!controls) MatchIdentity(s, Modifier.padding(horizontal = 12.dp))
+            }
+            // Width is the portrait limit. Reserve exactly the natural board height
+            // when controls open; on short/large-text windows share the remaining space.
+            if (controls) {
+                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                    val boardHeight = minOf((maxWidth - 36.dp) * .8f + 60.dp, maxHeight * .58f)
+                    Column(Modifier.fillMaxSize()) {
+                        PlayBoard(s, vm, Modifier.fillMaxWidth().height(boardHeight), reveal)
+                        PlayControls(s, vm, Modifier.weight(1f).fillMaxWidth()) { controls = false }
+                    }
+                }
+            } else PlayBoard(s, vm, Modifier.weight(1f).fillMaxWidth(), reveal)
+        }
+    }
+}
+
+@Composable
+private fun PlayControls(s: UiState, vm: GameViewModel, modifier: Modifier, hide: () -> Unit) {
+    val match = s.match ?: return
+    val state = match.state
+    Surface(modifier.testTag("controls-panel"),
+        color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
+        Column {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    .pointerInput(Unit) {
+                        var distance = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { distance = 0f },
+                            onVerticalDrag = { change, amount ->
+                                change.consume()
+                                distance += amount
+                                if (distance > 48.dp.toPx()) hide()
+                            },
+                        )
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = { hide() }, modifier = Modifier.testTag("hide-controls")) {
+                    Text(stringResource(R.string.hide_controls))
+                }
+            }
+            HorizontalDivider()
+            Column(
+                Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (state.outcome != Outcome.ONGOING) GameControls(s, vm, showStatus = false)
+                else {
+                    if (s.paused) Button(onClick = vm::resume, enabled = !s.busy) {
+                        Text(stringResource(R.string.resume))
+                    }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = vm::hint, enabled = vm.playable()) {
+                            Text(stringResource(R.string.hint))
+                        }
+                        OutlinedButton(onClick = vm::undo,
+                            enabled = vm.playable() && GameEngine.undoPrefix(state, match.human) != null) {
+                            Text(stringResource(R.string.undo))
+                        }
+                        TextButton(onClick = { vm.navigate(Screen.RULES) }, enabled = !s.busy) {
+                            Text(stringResource(R.string.rules))
+                        }
+                        TextButton(onClick = { vm.navigate(Screen.SETTINGS) }, enabled = !s.busy) {
+                            Text(stringResource(R.string.settings))
+                        }
+                    }
+                    TextButton(onClick = vm::back, enabled = !s.busy) {
+                        Text(stringResource(R.string.save_home))
+                    }
+                    Text(stringResource(if (state.position.phase == Phase.PLACEMENT && match.human == Side.LAMB)
+                        R.string.place_instruction else R.string.move_instruction))
+                }
+                PointPicker(state, s.selected,
                     if (vm.playable()) GameEngine.available(state) else emptyList(),
-                    vm.playable(),
-                    vm::tap,
-                )
+                    vm.playable(), vm::tap)
+                GameStatus(s)
+                s.lastAction?.let {
+                    Text(stringResource(R.string.last_move, moveLabel(it)))
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun MatchIdentity(s: UiState, modifier: Modifier = Modifier) {
+    val match = s.match ?: return
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 40.dp)) {
+            Image(painterResource(if (match.human == Side.LAMB) R.drawable.lamb_portrait else R.drawable.tiger_portrait),
+                contentDescription = null, modifier = Modifier.size(32.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(if (match.human == Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
+                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 40.dp)) {
+            Image(painterResource(if (match.human == Side.LAMB) R.drawable.tiger_portrait else R.drawable.lamb_portrait),
+                contentDescription = null, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(difficultyNames[match.difficulty.ordinal]),
+                style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+@Composable
+private fun CompactPlayStatus(s: UiState, vm: GameViewModel, modifier: Modifier = Modifier) {
+    val match = s.match ?: return
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        val title = when {
+            match.state.outcome == Outcome.TIGERS_WIN -> R.string.win_tigers
+            match.state.outcome == Outcome.LAMBS_WIN -> R.string.win_lambs
+            match.state.outcome != Outcome.ONGOING -> R.string.draw
+            s.busy -> R.string.saving
+            s.paused -> R.string.paused
+            match.state.position.turn != match.human -> R.string.thinking
+            else -> R.string.your_turn
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(title), style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            if (vm.playable()) Text(
+                stringResource(if (match.state.position.phase == Phase.PLACEMENT && match.human == Side.LAMB)
+                    R.string.place_compact else R.string.move_compact),
+                style = MaterialTheme.typography.bodyMedium)
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.reserve_compact, match.state.position.reserve),
+                style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.captured_compact, match.state.position.captured),
+                style = MaterialTheme.typography.bodySmall)
+        }
+        if (s.paused && match.state.outcome == Outcome.ONGOING)
+            Button(onClick = vm::resume, enabled = !s.busy) { Text(stringResource(R.string.resume)) }
+        s.hint?.let { Text(actionLabel(it), style = MaterialTheme.typography.bodyMedium) }
+        s.message?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
+    }
+}
+
+@Composable
+private fun PlayBoard(s: UiState, vm: GameViewModel, modifier: Modifier, reveal: () -> Unit) {
+    val state = s.match?.state ?: return
+    BoxWithConstraints(modifier.pointerInput(Unit) {
+        var distance = 0f
+        detectVerticalDragGestures(
+            onDragStart = { distance = 0f },
+            onVerticalDrag = { change, amount ->
+                distance += amount
+                if (distance < -48.dp.toPx()) { change.consume(); reveal() }
+            },
+        )
+    }, contentAlignment = Alignment.Center) {
+        Image(painterResource(if (maxHeight > maxWidth) R.drawable.woodland_board_portrait else R.drawable.woodland_board), contentDescription = null,
+            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
+            alpha = if (s.preferences.dark) .13f else .8f)
+        BoardView(state, s.selected,
+            if (vm.playable()) GameEngine.available(state) else emptyList(),
+            s.hint, vm::tap, Modifier.fillMaxSize().testTag("play-board"),
+            last = s.lastAction, immersive = true)
     }
 }
 
@@ -623,10 +783,13 @@ private fun BoardView(
     onTap: (Node) -> Unit,
     modifier: Modifier,
     last: Action? = null,
+    immersive: Boolean = false,
 ) {
-    val lines = MaterialTheme.colorScheme.onSurfaceVariant
+    val tigerImage = ImageBitmap.imageResource(R.drawable.tiger_portrait)
+    val lambImage = ImageBitmap.imageResource(R.drawable.lamb_portrait)
+    val lines = if (immersive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     val selectedColor = MaterialTheme.colorScheme.primary
-    val canvasLabel = stringResource(R.string.board_label)
+    val canvasLabel = stringResource(if (immersive) R.string.play_board_label else R.string.board_label)
     val destinations =
         actions
             .filter { it is Action.Place || it.origin == selected }
@@ -634,12 +797,12 @@ private fun BoardView(
             .toSet()
     Canvas(
         modifier
-            .padding(14.dp)
+            .padding(if (immersive) 0.dp else 14.dp)
             .semantics { contentDescription = canvasLabel }
             .pointerInput(state, selected, actions) {
                 detectTapGestures { tap ->
                     if (actions.isNotEmpty()) {
-                        val margin = 25.dp.toPx()
+                        val margin = (if (immersive) 18.dp else 25.dp).toPx()
                         val n =
                             Node.entries.minBy {
                                 val p =
@@ -648,21 +811,28 @@ private fun BoardView(
                                         size.height.toFloat(),
                                         margin,
                                         it,
+                                        margin + if (immersive) 12.dp.toPx() else 0f,
                                     )
                                 hypot(tap.x - p.x, tap.y - p.y)
                             }
-                        val p = boardPoint(size.width.toFloat(), size.height.toFloat(), margin, n)
+                        val p = boardPoint(size.width.toFloat(), size.height.toFloat(), margin, n, margin + if (immersive) 12.dp.toPx() else 0f)
                         if (hypot(tap.x - p.x, tap.y - p.y) <= 24.dp.toPx()) onTap(n)
                     }
                 }
             }
     ) {
-        val margin = 25.dp.toPx()
-        val scale = minOf((size.width - 2 * margin) / 10, (size.height - 2 * margin) / 8)
-        val pieceRadius = minOf(10.dp.toPx(), scale * .28f)
-        fun point(n: Node) = boardPoint(size.width, size.height, margin, n)
+        val margin = (if (immersive) 18.dp else 25.dp).toPx()
+        val verticalMargin = margin + if (immersive) 12.dp.toPx() else 0f
+        val scale = minOf((size.width - 2 * margin) / 10, (size.height - 2 * verticalMargin) / 8)
+        val pieceRadius = minOf(if (immersive) 16.dp.toPx() else 10.dp.toPx(), scale * .29f)
+        fun point(n: Node) = boardPoint(size.width, size.height, margin, n, verticalMargin)
         Board.edges.forEach {
-            drawLine(lines.copy(alpha = .65f), point(it.from), point(it.to), 1.8.dp.toPx())
+            drawLine(lines.copy(alpha = if (immersive) .95f else .65f), point(it.from), point(it.to), (if (immersive) 2.2.dp else 1.8.dp).toPx())
+        }
+        fun portrait(bitmap: ImageBitmap, c: Offset, radius: Float) {
+            val diameter = (radius * 2).toInt().coerceAtLeast(1)
+            drawImage(bitmap, dstOffset = IntOffset((c.x - radius).toInt(), (c.y - radius).toInt()),
+                dstSize = IntSize(diameter, diameter))
         }
         Node.entries.forEach { n ->
             val c = point(n)
@@ -683,14 +853,15 @@ private fun BoardView(
                 drawLine(lines, c + Offset(-r, r), c + Offset(r, -r), 2.dp.toPx())
             }
             if (n in destinations) {
-                drawCircle(selectedColor.copy(alpha = .14f), 14.dp.toPx(), c)
-                drawCircle(selectedColor, 13.dp.toPx(), c, style = Stroke(1.5.dp.toPx()))
+                drawCircle(selectedColor.copy(alpha = .14f), (if (immersive) 8.dp else 14.dp).toPx(), c)
+                drawCircle(selectedColor, (if (immersive) 8.dp else 13.dp).toPx(), c, style = Stroke(1.5.dp.toPx()))
             }
             when (piece) {
-                Occupant.EMPTY -> drawCircle(lines, 3.dp.toPx(), c)
+                Occupant.EMPTY -> drawCircle(lines, (if (immersive) 5.dp else 3.dp).toPx(), c)
                 Occupant.LAMB -> {
                     drawCircle(Color(0xFFFFFDF3), pieceRadius, c)
                     drawCircle(Color(0xFF354D3D), pieceRadius, c, style = Stroke(2.dp.toPx()))
+                    portrait(lambImage, c, pieceRadius * .88f)
                 }
                 Occupant.TIGER -> {
                     val r = pieceRadius
@@ -703,6 +874,7 @@ private fun BoardView(
                         }
                     drawPath(path, Color(0xFFE3A344))
                     drawPath(path, Color(0xFF503512), style = Stroke(2.dp.toPx()))
+                    portrait(tigerImage, c + Offset(0f, r * .18f), r * .57f)
                 }
             }
             if (n == selected || n == hint?.destination)
@@ -912,8 +1084,8 @@ private fun Tutorial(s: UiState, vm: GameViewModel) {
     }
 }
 
-private fun boardPoint(width: Float, height: Float, margin: Float, node: Node): Offset {
-    val scale = minOf((width - 2 * margin) / 10, (height - 2 * margin) / 8)
+private fun boardPoint(width: Float, height: Float, margin: Float, node: Node, verticalMargin: Float = margin): Offset {
+    val scale = minOf((width - 2 * margin) / 10, (height - 2 * verticalMargin) / 8)
     val p = Board.points.getValue(node)
     return Offset(width / 2 + p.x * scale, height / 2 + (p.y - 4) * scale)
 }

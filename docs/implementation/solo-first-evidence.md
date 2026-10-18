@@ -100,3 +100,7 @@ The fourth [run 39069867688](https://github.com/lumensparkxy/lamb-and-tiger/acti
 Explicitly pin the instrumentation-only `espresso-core` dependency to stable 3.7.0, whose [AndroidX release notes](https://developer.android.com/jetpack/androidx/releases/test#espresso-3.7.0) document the switch to `getSystemService`. Reviewed its source to confirm API 23+ uses that public API. Updated only the affected test dependency locks and seven new artifact checksums, verified against downloads from Google Maven/Maven Central; existing hashes are preserved. Production Kotlin, rules, test assertions and the four-version matrix are unchanged. Final results for this fix belong to the subsequent PR-head run, not the earlier local APK snapshot.
 
 Local `:app:assembleDebugAndroidTest :app:lintDebug` passed after the dependency update, followed by strict-verification `:app:connectedDebugAndroidTest`: all 14 API 36 tests passed with zero failures/errors/skips. Logs are retained locally as `ci-espresso-update.log` and `ci-espresso-instrumented.log` in the ignored evidence directory.
+
+## Illustrated play-screen follow-up
+
+D044 authorizes the 2026-10-18 board-first UI. See [illustrated UI evidence](illustrated-ui-evidence.md) for the local build, 16-test emulator run, source/render comparison and remaining qualification boundaries.
