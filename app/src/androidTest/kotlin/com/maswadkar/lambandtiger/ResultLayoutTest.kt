@@ -64,8 +64,10 @@ class ResultLayoutTest {
         reopen.performClick()
         rule.onNodeWithTag("game-result-dialog").assertExists()
         // Android Back dismisses the popup too, leaving the final board inspectable.
-        InstrumentationRegistry.getInstrumentation()
-            .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+        pressDialogBack()
+        rule.waitUntil(10000) {
+            rule.onAllNodesWithTag("game-result-dialog").fetchSemanticsNodes().isEmpty()
+        }
         rule.onNodeWithTag("game-result-dialog").assertDoesNotExist()
         assertEquals(finished, state.match!!.state)
     }

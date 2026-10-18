@@ -64,8 +64,8 @@ class FeedbackLayoutTest {
         // Dismissing must allow the same error to appear again on the next invalid tap.
         rule.runOnIdle { vm.tap(Node.A) }
         rule.onNodeWithTag("game-error-dialog").assertExists()
-        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
-            .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+        pressDialogBack()
+        rule.waitUntil(10000) { vm.ui.value.message == null }
         assertNull(vm.ui.value.message)
 
         rule.runOnIdle { vm.hint() }
@@ -78,8 +78,8 @@ class FeedbackLayoutTest {
         rule.onNodeWithTag("game-error-dialog").assertExists()
         rule.onNodeWithText(rule.activity.getString(R.string.illegal_action)).assertIsDisplayed()
         assertStable()
-        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
-            .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+        pressDialogBack()
+        rule.waitUntil(10000) { vm.ui.value.message == null }
         rule.onNodeWithTag("game-error-dialog").assertDoesNotExist()
         assertNotNull(vm.ui.value.hint)
         assertNull(vm.ui.value.message)
