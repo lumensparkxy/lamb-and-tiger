@@ -51,7 +51,14 @@ Three modules: `app` owns Compose UI, coordination, codecs and SQLite persistenc
 
 Use JDK 25 (local checks use Android Studio JBR 25.0.3), SDK platform 37, and Build Tools 36.0.0. Set `JAVA_HOME` and `ANDROID_HOME` locally. Minimum SDK is 29; the approved initial target remains 36. Do not commit SDK paths or signing keys.
 
-Verified local build/unit/lint command:
+Routine PR verification runs JVM unit tests only (including the compilation needed by those tests):
+
+```sh
+./scripts/doctor.sh
+./gradlew :game:test :app:testDebugUnitTest :nearby:testDebugUnitTest --console=plain
+```
+
+Full local build/unit/lint command:
 
 ```sh
 ./scripts/doctor.sh
@@ -74,7 +81,7 @@ mkdir -p work
 python3 scripts/summarize_ai.py work/ai-evaluation.log
 ```
 
-Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. Every PR runs the same build/unit/lint checks plus one API 36 emulator job. Before release, or when changing SDKs, dependencies, permissions or platform behavior, manually run **Android verification** on the relevant branch to run the full API 29/34/36/37 emulator matrix plus build/unit/lint. No release signing/publishing is configured.
+Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. During early development, every PR runs only the JVM unit-test command above; APK assembly, lint and emulator regression are reserved for manual runs. Before release, or when broader regression is needed, manually run **Android verification** on the relevant branch to run unit tests, build/lint and the full API 29/34/36/37 emulator matrix. In GitHub Actions, select **Android verification → Run workflow → Branch → Run workflow**, or use `gh workflow run android.yml --ref <branch>`. The manual workflow is available before merging a PR because its dispatch trigger already exists on `main`. Unit-test success does not establish rendered UI, device or release qualification. No release signing/publishing is configured.
 
 CI invokes `bash scripts/ci-connected-tests.sh` around the connected-test command to print instrumentation counts, failure reports and device crash diagnostics without changing the test exit status. Espresso 3.7.0 is explicitly pinned for API 37 input-service compatibility.
 
