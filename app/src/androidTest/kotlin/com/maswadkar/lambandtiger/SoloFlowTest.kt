@@ -30,6 +30,46 @@ class SoloFlowTest {
     }
 
     @Test
+    fun resizedBoardTapUsesRenderedCoordinates() {
+        start()
+        val density = rule.activity.resources.displayMetrics.density
+        rule.onNodeWithTag("play-board").performTouchInput {
+            val scale = minOf((width - 36f * density) / 10, (height - 60f * density) / 8)
+            // B = (-3, 2) in the approved board. Verify Canvas hit testing,
+            // rather than bypassing it through the coordinator or point list.
+            click(androidx.compose.ui.geometry.Offset(width / 2f - 3 * scale, height / 2f - 2 * scale))
+        }
+        rule.waitUntil(10000) { vm.ui.value.match?.state?.eventCount == 2 && !vm.ui.value.busy }
+        assertEquals(Occupant.LAMB, vm.ui.value.match!!.state.position.at(Node.B))
+        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
+    }
+
+    @Test
+    fun hiddenControlsRevealWithoutChangingMatch() {
+        start()
+        val before = vm.ui.value.match!!
+        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
+        rule.onNodeWithTag("play-board").assertIsDisplayed()
+        rule.onNodeWithTag("play-board").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("controls-panel").assertIsDisplayed()
+        val boardBounds = rule.onNodeWithTag("play-board").fetchSemanticsNode().boundsInRoot
+        val panelBounds = rule.onNodeWithTag("controls-panel").fetchSemanticsNode().boundsInRoot
+        assertTrue("Controls must not cover the board",
+            boardBounds.bottom <= panelBounds.top || boardBounds.right <= panelBounds.left)
+        assertEquals(before.state.events, vm.ui.value.match!!.state.events)
+        assertFalse(vm.ui.value.paused)
+        rule.onNodeWithTag("hide-controls").performClick()
+        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
+        rule.onNodeWithTag("show-controls").performClick()
+        rule.onNodeWithContentDescription("Point B, empty, available destination")
+            .performScrollTo().performClick()
+        rule.waitUntil(10000) { vm.ui.value.match?.state?.eventCount == 2 && !vm.ui.value.busy }
+        rule.onNodeWithTag("hide-controls").performClick()
+        assertEquals(before.id, vm.ui.value.match!!.id)
+        rule.onNodeWithTag("play-board").assertIsDisplayed()
+    }
+
+    @Test
     fun backDuringInitialSaveDoesNotReopenGame() {
         ready()
         for (reenterSetup in listOf(false, true)) {
@@ -95,6 +135,7 @@ class SoloFlowTest {
     @Test
     fun placementComputerReplyHintUndoAndPause() {
         start()
+        rule.onNodeWithTag("show-controls").performClick()
         rule
             .onNodeWithContentDescription("Point B, empty, available destination")
             .performScrollTo()
@@ -136,6 +177,7 @@ class SoloFlowTest {
     fun completeSoloGamesAsBothSides() {
         for (side in Side.entries) {
             start(side)
+            rule.onNodeWithTag("show-controls").performClick()
             var turns = 0
             while (vm.ui.value.match!!.state.outcome == Outcome.ONGOING && turns < 400) {
                 rule.waitUntil(10000) {

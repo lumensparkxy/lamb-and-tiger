@@ -116,4 +116,13 @@
     <string name="move_step">%1$s → %2$s</string>
     <string name="move_capture">%1$s → %2$s (capture %3$s)</string>
     <string name="trap_explanation">None of these three tigers can step or capture. Lambs win, even though five points are empty.</string>
+    <string name="controls">Controls</string>
+    <string name="show_controls">Show controls</string>
+    <string name="hide_controls">Hide controls</string>
+    <string name="reserve_compact">%1$d to place</string>
+    <string name="captured_compact">%1$d / 5 captured</string>
+    <string name="place_compact">Place a lamb</string>
+    <string name="move_compact">Choose a piece, then a destination</string>
+    <string name="play_title">Lamb and Tiger</string>
+    <string name="play_board_label">23-point board. Open Controls for accessible point selection.</string>
 </resources>
