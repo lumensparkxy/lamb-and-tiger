@@ -23,8 +23,11 @@ class SoloFlowTest {
             rule.activity.lifecycle.currentState == androidx.lifecycle.Lifecycle.State.RESUMED &&
                 rule.activity.hasWindowFocus()
         }
+        // The previous match may schedule a computer write while Compose settles.
+        // Pause/cancel it first, then let any durable write finish before setup.
+        rule.runOnIdle { vm.home() }
+        ready()
         rule.runOnIdle {
-            vm.home()
             vm.openSetup()
             vm.setup(side, Difficulty.VERY_EASY)
             vm.start()
