@@ -51,6 +51,12 @@ Three modules: `app` owns Compose UI, coordination, codecs and SQLite persistenc
 
 Use JDK 25 (local checks use Android Studio JBR 25.0.3), SDK platform 37, and Build Tools 36.0.0. Set `JAVA_HOME` and `ANDROID_HOME` locally. Minimum SDK is 29; the approved initial target remains 36. Do not commit SDK paths or signing keys.
 
+The committed [daemon JVM criteria](gradle/gradle-daemon-jvm.properties) require **Java 25, any vendor**, for running Gradle. A compatible installed JDK is preferred; the per-platform URLs provide download fallbacks when provisioning is needed. These criteria take precedence over `JAVA_HOME` and `org.gradle.java.home` for daemon selection. Continue setting `JAVA_HOME` for the launcher and doctor script, and use `./gradlew --version` to inspect both launcher and daemon criteria. App/library bytecode still targets Java 17; this file does not change Android compatibility. See [Gradle daemon JVM documentation](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
+
+The reviewed fallback mappings cover Linux, macOS and Windows on x86_64 and ARM64. They resolve to JDK 25.0.3 (Temurin, except Azul Zulu on Windows ARM64); this does **not** pin the patch version or vendor of an already installed compatible JDK. FreeBSD and generic Unix mappings were removed because their generated URLs pointed to Linux archives. Other platforms require an appropriate installed JDK 25; no download mapping is supplied for them.
+
+When updating this generated file, review every mapping against the provider's package metadata and redirect destination, including OS, architecture, Java major version and JDK archive type. Recheck archive availability and run the unit-test command below. The 2026-10-18 review checked all six metadata/redirect mappings and archive HTTP HEAD responses; it did not download, checksum-verify or execute all six archives. Keep local SDK/JDK paths out of this file.
+
 Routine PR verification runs JVM unit tests only (including the compilation needed by those tests):
 
 ```sh
