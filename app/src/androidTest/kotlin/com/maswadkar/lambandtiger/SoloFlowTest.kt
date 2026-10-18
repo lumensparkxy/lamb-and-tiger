@@ -18,14 +18,28 @@ class SoloFlowTest {
 
     private fun start(side: Side = Side.LAMB) {
         ready()
+        // Compose can be idle before a newly launched/rotated Activity owns the window.
+        rule.waitUntil(10000) {
+            rule.activity.lifecycle.currentState == androidx.lifecycle.Lifecycle.State.RESUMED &&
+                rule.activity.hasWindowFocus()
+        }
         rule.runOnIdle {
             vm.home()
             vm.openSetup()
             vm.setup(side, Difficulty.VERY_EASY)
             vm.start()
         }
-        rule.waitUntil(10000) {
-            !vm.ui.value.busy && vm.ui.value.match?.state?.sideToMove == side && !vm.ui.value.paused
+        try {
+            rule.waitUntil(10000) {
+                !vm.ui.value.busy && vm.ui.value.match?.state?.sideToMove == side && !vm.ui.value.paused
+            }
+        } catch (timeout: ComposeTimeoutException) {
+            val s = vm.ui.value
+            throw AssertionError(
+                "Start $side: screen=${s.screen}, busy=${s.busy}, paused=${s.paused}, " +
+                    "error=${s.error}, human=${s.match?.human}, turn=${s.match?.state?.sideToMove}, " +
+                    "events=${s.match?.state?.eventCount}", timeout,
+            )
         }
     }
 
