@@ -7,6 +7,9 @@ import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.*
@@ -15,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,20 +27,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maswadkar.lambandtiger.game.*
 
-private val difficultyNames =
-    listOf(
-        R.string.difficulty_0,
-        R.string.difficulty_1,
-        R.string.difficulty_2,
-        R.string.difficulty_3,
-        R.string.difficulty_4,
-    )
 private val difficultyDescriptions =
     listOf(
         R.string.difficulty_desc_0,
@@ -63,7 +63,7 @@ private val instructions =
         R.string.lesson_instruction_4,
         R.string.lesson_instruction_5,
     )
-private val light =
+internal val light =
     lightColorScheme(
         primary = Color(0xFF246657),
         onPrimary = Color.White,
@@ -79,7 +79,7 @@ private val light =
         outlineVariant = Color(0xFFCED4C9),
         onSurfaceVariant = Color(0xFF465249),
     )
-private val dark =
+internal val dark =
     darkColorScheme(
         primary = Color(0xFFA8D4BC),
         onPrimary = Color(0xFF16372B),
@@ -162,7 +162,7 @@ fun LambAndTiger(vm: GameViewModel) {
                     }
                 else
                     Column(Modifier.fillMaxSize()) {
-                        if (s.screen != Screen.GAME && s.screen != Screen.HOME) Row(
+                        if (s.screen != Screen.GAME && s.screen != Screen.HOME && s.screen != Screen.NEARBY) Row(
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -340,55 +340,117 @@ private fun ChoiceCard(title: Int, subtitle: Int, enabled: Boolean = true, onCli
     }
 }
 
+private val difficultyArtwork = listOf(
+    R.drawable.challenge_sleepy, R.drawable.challenge_lamb, R.drawable.challenge_paw,
+    R.drawable.challenge_schemer, R.drawable.challenge_grandmaster,
+)
+private val difficultyTitles = listOf(
+    R.string.difficulty_title_0, R.string.difficulty_title_1, R.string.difficulty_title_2,
+    R.string.difficulty_title_3, R.string.difficulty_title_4,
+)
+private val difficultyLevels = listOf(
+    R.string.difficulty_level_0, R.string.difficulty_level_1, R.string.difficulty_level_2,
+    R.string.difficulty_level_3, R.string.difficulty_level_4,
+)
+
 @Composable
 private fun Setup(s: UiState, vm: GameViewModel) {
-    Page {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Title(R.string.solo_setup)
         Text(stringResource(R.string.choose_side), style = MaterialTheme.typography.titleMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            Modifier.fillMaxWidth().selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             Side.entries.forEach { side ->
-                FilterChip(
-                    selected = s.setupSide == side,
-                    onClick = { vm.setup(side = side) },
-                    label = { Text(sideLabel(side)) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                )
+                val selected = s.setupSide == side
+                Surface(
+                    modifier = Modifier.weight(1f).selectable(
+                        selected = selected, role = Role.RadioButton,
+                        onClick = { vm.setup(side = side) },
+                    ).testTag("setup-side-${side.name}"),
+                    shape = RoundedCornerShape(18.dp),
+                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(if (selected) 2.dp else 1.dp,
+                        if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outlineVariant),
+                ) {
+                    Row(
+                        Modifier.heightIn(min = 64.dp).padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Image(
+                            painterResource(if (side == Side.LAMB) R.drawable.challenge_lamb
+                                else R.drawable.challenge_tiger),
+                            contentDescription = null, modifier = Modifier.size(40.dp).clip(CircleShape),
+                        )
+                        Text(sideLabel(side), modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
-        Text(stringResource(R.string.lambs_first))
+        Text(stringResource(R.string.lambs_first), style = MaterialTheme.typography.bodyMedium)
         Text(stringResource(R.string.difficulty), style = MaterialTheme.typography.titleMedium)
-        Difficulty.entries.forEachIndexed { i, d ->
-            OutlinedCard(
-                onClick = { vm.setup(difficulty = d) },
-                modifier = Modifier.fillMaxWidth(),
-                border =
-                    BorderStroke(
-                        if (s.setupDifficulty == d) 2.dp else 1.dp,
-                        if (s.setupDifficulty == d) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outlineVariant,
-                    ),
-            ) {
-                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = s.setupDifficulty == d,
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Difficulty.entries.forEachIndexed { i, d ->
+                val selected = s.setupDifficulty == d
+                Surface(
+                    modifier = Modifier.fillMaxWidth().selectable(
+                        selected = selected, role = Role.RadioButton,
                         onClick = { vm.setup(difficulty = d) },
-                    )
-                    Column {
-                        Text(stringResource(difficultyNames[i]), fontWeight = FontWeight.SemiBold)
-                        Text(
-                            stringResource(difficultyDescriptions[i]),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                    ).testTag("setup-difficulty-${d.name}"),
+                    shape = RoundedCornerShape(18.dp),
+                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(if (selected) 2.dp else 1.dp,
+                        if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outlineVariant),
+                ) {
+                    Row(
+                        Modifier.heightIn(min = 80.dp).padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Image(painterResource(difficultyArtwork[i]), contentDescription = null,
+                            modifier = Modifier.size(52.dp).clip(CircleShape))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(stringResource(difficultyTitles[i]), modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold)
+                                if (selected) Surface(shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primary) {
+                                    Icon(painterResource(R.drawable.ic_check), contentDescription = null,
+                                        modifier = Modifier.size(22.dp).padding(4.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary)
+                                }
+                            }
+                            Text(stringResource(difficultyLevels[i]),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(difficultyDescriptions[i]),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
         }
         Button(
-            onClick = vm::requestStart,
-            enabled = !s.busy,
+            onClick = vm::requestStart, enabled = !s.busy,
             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
         ) {
-            Text(stringResource(R.string.start_game))
+            Text(stringResource(R.string.start_game), fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -430,7 +492,11 @@ internal fun GameScreen(s: UiState, vm: GameViewModel) {
     val scroll = rememberScrollState()
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=4.dp), verticalAlignment=Alignment.CenterVertically) {
-            TextButton(onClick=vm::back) { Text(stringResource(R.string.back)) }
+            TextButton(onClick=vm::back) {
+                Icon(painterResource(R.drawable.ic_back), null, Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.back))
+            }
             Text(stringResource(R.string.play_title),Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
             Box {
                 TextButton(onClick={ menu=true },modifier=Modifier.testTag("game-menu")) { Text(stringResource(R.string.game_menu)) }
@@ -452,7 +518,8 @@ internal fun GameScreen(s: UiState, vm: GameViewModel) {
                 key(match.id) {
                     BoardView(match.state,s.selected,if(playable) GameEngine.available(match.state) else emptyList(),
                         s.hint,vm::tap,modifier.testTag("play-board"),last=s.lastAction,immersive=true,
-                        reducedMotion=s.preferences.reduced,motionEnabled=!s.paused,onMotionRunning={ moving=it })
+                        reducedMotion=s.preferences.reduced,motionEnabled=!s.paused,onMotionRunning={ moving=it },
+                        showPointLabels=false)
                 }
             }
             if (landscape) Row(Modifier.fillMaxSize()) {
@@ -503,19 +570,20 @@ internal fun GameScreen(s: UiState, vm: GameViewModel) {
 @Composable
 private fun MatchIdentity(s: UiState, modifier: Modifier = Modifier) {
     val match=s.match ?: return
-    FlowRow(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+    FlowRow(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(Modifier.heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
             AnimalIcon(match.human,Modifier.size(36.dp))
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(if(match.human==Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
+            Text(stringResource(if(match.human==Side.LAMB) R.string.you_lambs_compact else R.string.you_tigers_compact),
                 style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold)
         }
         Row(Modifier.heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
             AnimalIcon(match.human.other(),Modifier.size(36.dp))
             Spacer(Modifier.width(8.dp))
             Column {
-                Text(stringResource(R.string.play_ai),style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold)
-                Text(stringResource(difficultyNames[match.difficulty.ordinal]),style=MaterialTheme.typography.labelMedium)
+                Text(stringResource(difficultyTitles[match.difficulty.ordinal]),style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold)
+                Text(stringResource(difficultyLevels[match.difficulty.ordinal]),style=MaterialTheme.typography.bodySmall,
+                    color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -534,50 +602,53 @@ private fun TabletopTurn(s: UiState,vm: GameViewModel,modifier: Modifier=Modifie
         state.sideToMove!=match.human -> R.string.thinking
         else -> R.string.your_turn
     }
-    val spoken=listOfNotNull(stringResource(title),stringResource(R.string.reserve_count,state.position.reserve),
+    val prompt = when {
+        s.hint != null && vm.playable(s) -> stringResource(when (s.hint) {
+            is Action.Place -> R.string.hint_place_visual
+            is Action.Step -> R.string.hint_step_visual
+            is Action.Capture -> R.string.hint_capture_visual
+        })
+        vm.playable(s) -> stringResource(R.string.turn_prompt, stringResource(title),
+            stringResource(if(state.position.phase==Phase.PLACEMENT && match.human==Side.LAMB)
+                R.string.place_compact else R.string.move_compact))
+        else -> stringResource(title)
+    }
+    val spoken=listOfNotNull(prompt,
+        stringResource(if(state.position.phase==Phase.PLACEMENT) R.string.phase_placement else R.string.phase_movement),
+        stringResource(R.string.reserve_count,state.position.reserve),
         stringResource(R.string.captured_count,state.position.captured),s.lastAction?.let { stringResource(R.string.last_move,moveLabel(it)) }).joinToString(". ")
-    Column(modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(3.dp)) {
-        Text(stringResource(title),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold,
-            modifier=Modifier.clearAndSetSemantics {contentDescription=spoken;liveRegion=LiveRegionMode.Polite})
-        // Hints replace the ordinary instruction, without adding rows to the layout.
-        val instructionHeight = with(LocalDensity.current) {
-            (MaterialTheme.typography.titleMedium.lineHeight * 2).toDp()
-        }
-        key(s.hint) {
-            Column(
-                Modifier.fillMaxWidth().height(instructionHeight)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                if (s.hint != null) {
-                    Text(actionLabel(s.hint), style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-                } else if (vm.playable(s)) {
-                    Text(stringResource(if(state.position.phase==Phase.PLACEMENT && match.human==Side.LAMB)
-                        R.string.place_compact else R.string.move_compact),
-                        style=MaterialTheme.typography.titleMedium,
-                        textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+    // Reserve two lines for turns and hints alike; feedback never pushes the board down.
+    // Convert each line before multiplying: Android's enlarged fonts scale nonlinearly.
+    val bannerHeight = with(LocalDensity.current) { 22.sp.toDp() * 2 } + 12.dp
+    Column(modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally) {
+        Surface(Modifier.fillMaxWidth().height(bannerHeight).testTag("turn-banner"),
+            shape=RoundedCornerShape(12.dp),
+            color=MaterialTheme.colorScheme.primary.copy(alpha=.09f),
+            contentColor=MaterialTheme.colorScheme.primary) {
+            key(prompt) {
+                Box(Modifier.padding(horizontal=12.dp,vertical=6.dp).verticalScroll(rememberScrollState()),
+                    contentAlignment=Alignment.Center) {
+                    Text(prompt,style=MaterialTheme.typography.titleMedium.copy(fontSize=18.sp,lineHeight=22.sp),
+                        fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center,
+                        modifier=Modifier.semantics {contentDescription=spoken;liveRegion=LiveRegionMode.Polite})
                 }
             }
         }
-        Text(stringResource(if(state.position.phase==Phase.PLACEMENT) R.string.phase_placement else R.string.phase_movement),
-            style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
         if(s.paused && state.outcome==Outcome.ONGOING) Button(onClick=vm::resume,enabled=!s.busy) {Text(stringResource(R.string.resume))}
     }
 }
 
 @Composable
-private fun TabletopCounts(state: GameState,modifier: Modifier=Modifier) {
+internal fun TabletopCounts(state: GameState,modifier: Modifier=Modifier) {
     Row(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.reserve_label),style=MaterialTheme.typography.bodyMedium)
-            Text(state.position.reserve.toString(),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold)
-        }
-        Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.captured_label),style=MaterialTheme.typography.bodyMedium)
-            Text(stringResource(R.string.capture_value,state.position.captured),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold)
+        for ((value, label) in listOf(state.position.reserve.toString() to R.string.to_place_compact,
+            stringResource(R.string.capture_value,state.position.captured) to R.string.captured_suffix)) {
+            Text(buildAnnotatedString {
+                withStyle(SpanStyle(fontSize=28.sp,fontWeight=FontWeight.SemiBold)) { append(value) }
+                append(" ")
+                append(stringResource(label))
+            },modifier=Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium,
+                textAlign=TextAlign.Center)
         }
     }
 }
@@ -590,11 +661,9 @@ private fun TabletopActions(s: UiState,vm: GameViewModel,playable: Boolean,modif
         // Retain the exact control footprint when replacing it with View Result.
         Column(Modifier.fillMaxWidth().then(if(finished) Modifier.alpha(0f).clearAndSetSemantics {} else Modifier),
             horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            val placing=match.state.position.phase==Phase.PLACEMENT && match.human==Side.LAMB
-            Text(stringResource(if(placing) R.string.tap_to_place else R.string.move_instruction),style=MaterialTheme.typography.bodyMedium,
-                textAlign=androidx.compose.ui.text.style.TextAlign.Center)
-            if(placing) Text(stringResource(R.string.lambs_move_later),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+            FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp),
+                verticalArrangement=Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow=if(LocalDensity.current.fontScale>1.3f) 1 else 2) {
                 OutlinedButton(onClick=vm::hint,enabled=playable,modifier=Modifier.weight(1f).heightIn(min=48.dp),shape=RoundedCornerShape(12.dp)) {
                     Icon(painterResource(R.drawable.ic_hint),null,Modifier.size(22.dp))
                     Spacer(Modifier.width(8.dp))

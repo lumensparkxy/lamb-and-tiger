@@ -1,4 +1,16 @@
 <resources>
+    <string name="friend_host_description">உங்கள் நண்பர் சேர்வதற்கான அமர்வை உருவாக்கவும்.</string>
+    <string name="friend_join_description">உங்கள் நண்பரின் கைப்பேசியில் உள்ள அமர்வைக் கண்டறியவும்.</string>
+    <string name="friend_disconnected_compact">இணைப்பு துண்டிக்கப்பட்டது · தொடர மீண்டும் இணைக்கவும்</string>
+    <string name="friend_review_draw">சமநிலை கோரிக்கையைப் பார்க்கவும்</string>
+    <string name="you_lambs_compact">நீங்கள் · ஆடுகள்</string>
+    <string name="you_tigers_compact">நீங்கள் · புலிகள்</string>
+    <string name="turn_prompt">%1$s · %2$s</string>
+    <string name="to_place_compact">வைக்க மீதம்</string>
+    <string name="captured_suffix">பிடிக்கப்பட்டவை</string>
+    <string name="hint_place_visual">வட்டமிட்ட புள்ளியில் வைத்துப் பாருங்கள்.</string>
+    <string name="hint_step_visual">அம்புக்குறி வழியாக நகர்த்திப் பாருங்கள்.</string>
+    <string name="hint_capture_visual">அம்புக்குறி வழியாகப் பிடித்துப் பாருங்கள்.</string>
     <string name="game_menu">பட்டி</string>
     <string name="choose_point">ஒரு புள்ளியைத் தேர்ந்தெடு</string>
     <string name="reserve_label">வைக்க வேண்டிய ஆடுகள்</string>
@@ -176,4 +188,14 @@
     <string name="friend_discovery_timeout">அருகிலுள்ள சாதனங்களைத் தேடும் நேரம் முடிந்தது. இரு சாதனங்களையும் திறந்து அருகில் வைத்து, மீண்டும் தொடங்கவும் சேரவும்.</string>
     <string name="friend_connection_timeout">தேர்ந்தெடுத்த சாதனத்துடன் இணைக்க முடியவில்லை. இரு சாதனங்களையும் திறந்து, Wi-Fi மற்றும் Bluetooth இயக்கி மீண்டும் முயலவும்.</string>
     <string name="friend_confirmation_timeout">குறியீட்டை உறுதிப்படுத்தும் நேரம் முடிந்தது. மீண்டும் இணைத்து இரு சாதனங்களிலும் ஒரே குறியீட்டை உறுதிப்படுத்தவும்.</string>
+    <string name="difficulty_title_0">தூங்கும் மீசை</string>
+    <string name="difficulty_level_0">மிகவும் எளிது</string>
+    <string name="difficulty_title_1">ஆட்டின் உள்ளுணர்வு</string>
+    <string name="difficulty_level_1">எளிது</string>
+    <string name="difficulty_title_2">தந்திரக் கால்கள்</string>
+    <string name="difficulty_level_2">நடுத்தரம்</string>
+    <string name="difficulty_title_3">கம்பளித் திட்டக்காரர்</string>
+    <string name="difficulty_level_3">கடினம்</string>
+    <string name="difficulty_title_4">பெரும் உறுமல்</string>
+    <string name="difficulty_level_4">நிபுணர்</string>
 </resources>
