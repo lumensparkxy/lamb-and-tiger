@@ -43,6 +43,7 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
         if(m!=null) { lastMatch=m.id; lastCount=m.state.eventCount }
     }
     var points by remember { mutableStateOf(false) }
+    var moving by remember(s.match?.id) { mutableStateOf(false) }
     DisposableEffect(model) { model.enter(); onDispose { if((context as? android.app.Activity)?.isChangingConfigurations != true) model.leave() } }
     val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         if(NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT).all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED })
@@ -94,6 +95,7 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
             val mine=m.side(s.player)
             Text(stringResource(if(mine==Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers))
             val myTurn=s.playable && state.sideToMove==mine
+            val canAct=myTurn && !moving
             Text(stringResource(when {
                 s.busy->R.string.friend_confirming_move
                 state.outcome==Outcome.TIGERS_WIN->R.string.win_tigers
@@ -104,8 +106,11 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
                 else->R.string.friend_wait_turn
             }))
             Text(stringResource(R.string.reserve_compact,state.position.reserve)+" · "+stringResource(R.string.captured_compact,state.position.captured))
-            BoardView(state,s.selected,if(myTurn) GameEngine.available(state) else emptyList(),null,model::tap,
-                Modifier.fillMaxWidth().aspectRatio(1.1f), (state.events.lastOrNull() as? Event.Played)?.action)
+            key(m.id) {
+                BoardView(state,s.selected,if(canAct) GameEngine.available(state) else emptyList(),null,model::tap,
+                    Modifier.fillMaxWidth().aspectRatio(1.1f), (state.events.lastOrNull() as? Event.Played)?.action,
+                    reducedMotion=preferences.reduced,motionEnabled=!s.paused,onMotionRunning={moving=it})
+            }
             if(state.outcome==Outcome.ONGOING && s.phase=="session" && !s.busy) {
                 if(s.offer) {
                     Text(stringResource(R.string.friend_draw_pending))
@@ -116,7 +121,7 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
                     Text(stringResource(if(s.peerReady) R.string.friend_peer_ready else R.string.friend_peer_waiting))
                 } else {
                     OutlinedButton(onClick=model::pause) { Text(stringResource(R.string.friend_pause)) }
-                    OutlinedButton(onClick={ draw=true },enabled=myTurn) { Text(stringResource(R.string.friend_offer_draw)) }
+                    OutlinedButton(onClick={ draw=true },enabled=canAct) { Text(stringResource(R.string.friend_offer_draw)) }
                 }
             }
             if(state.outcome!=Outcome.ONGOING) {
@@ -131,7 +136,7 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
                 TextButton(onClick={ model.pause(); onSettings() }) { Text(stringResource(R.string.settings)) }
             }
             TextButton(onClick={ points=!points }) { Text(stringResource(R.string.point_picker)) }
-            if(points) PointPicker(state,s.selected,if(myTurn) GameEngine.available(state) else emptyList(),myTurn,model::tap)
+            if(points) PointPicker(state,s.selected,if(canAct) GameEngine.available(state) else emptyList(),canAct,model::tap)
         }
         if(s.busy) Text(stringResource(R.string.friend_confirming_move))
         if(s.phase !in listOf("idle","permission","error","disconnected","discovery_timeout","connection_timeout","confirmation_timeout"))

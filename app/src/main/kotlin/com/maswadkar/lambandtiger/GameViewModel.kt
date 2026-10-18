@@ -317,6 +317,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             s.match?.state?.sideToMove == s.match?.human &&
             s.match != null
 
+    fun dismissMessage() {
+        _ui.value = _ui.value.copy(message = null)
+    }
+
     fun tap(node: Node) {
         val s = _ui.value
         if (s.screen == Screen.TUTORIAL) {
@@ -388,7 +392,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         cancelComputer()
         val ticket = generation
         computerJob = viewModelScope.launch {
-            delay(250)
+            // Let the longest board motion settle before the computer reply.
+            delay(420)
             val chosen =
                 withContext(Dispatchers.Default) {
                     val job = currentCoroutineContext().job
