@@ -74,7 +74,7 @@ mkdir -p work
 python3 scripts/summarize_ai.py work/ai-evaluation.log
 ```
 
-Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. CI configuration uses the same local checks and separate API 29/34/36/37 emulator jobs; remote results are tracked in [PR #15](https://github.com/lumensparkxy/lamb-and-tiger/pull/15). No release signing/publishing is configured.
+Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. Every PR runs the same build/unit/lint checks plus one API 36 emulator job. Before release, or when changing SDKs, dependencies, permissions or platform behavior, manually run **Android verification** on the relevant branch to run the full API 29/34/36/37 emulator matrix plus build/unit/lint. No release signing/publishing is configured.
 
 CI invokes `bash scripts/ci-connected-tests.sh` around the connected-test command to print instrumentation counts, failure reports and device crash diagnostics without changing the test exit status. Espresso 3.7.0 is explicitly pinned for API 37 input-service compatibility.
 
