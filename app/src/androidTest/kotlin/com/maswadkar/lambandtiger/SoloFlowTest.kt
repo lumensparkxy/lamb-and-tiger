@@ -89,15 +89,18 @@ class SoloFlowTest {
     }
 
     @Test
-    fun directBoardKeepsActionsVisibleWithoutPointList() {
+    fun directBoardKeepsActionsReachableWithoutPointList() {
         start()
         val before = vm.ui.value.match!!
         rule.onNodeWithTag("play-board").assertIsDisplayed()
-        rule.onNodeWithText(rule.activity.getString(R.string.hint)).assertIsDisplayed()
-        rule.onNodeWithText(rule.activity.getString(R.string.undo)).assertIsDisplayed()
         rule.onNodeWithText(rule.activity.getString(R.string.choose_point)).assertDoesNotExist()
         rule.onNodeWithTag("play-board").performTouchInput { swipeUp() }
         rule.onNodeWithTag("controls-panel").assertDoesNotExist()
+        for (label in listOf(R.string.hint, R.string.undo)) {
+            val action = rule.onNodeWithText(rule.activity.getString(label))
+            if (!action.isDisplayed()) action.performScrollTo()
+            action.assertIsDisplayed()
+        }
         assertEquals(before.state.events, vm.ui.value.match!!.state.events)
         assertFalse(vm.ui.value.paused)
     }

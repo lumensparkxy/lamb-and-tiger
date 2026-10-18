@@ -60,11 +60,12 @@ class ResultLayoutTest {
         assertEquals(before, rule.onNodeWithTag("play-board").fetchSemanticsNode().boundsInRoot)
         screenshot(if (landscape) "landscape-board" else "portrait-board")
         val reopen = rule.onNodeWithTag("view-result")
-        if (landscape) reopen.performScrollTo()
+        if (!reopen.isDisplayed()) reopen.performScrollTo()
         reopen.performClick()
         rule.onNodeWithTag("game-result-dialog").assertExists()
         // Android Back dismisses the popup too, leaving the final board inspectable.
-        androidx.test.espresso.Espresso.pressBack()
+        InstrumentationRegistry.getInstrumentation()
+            .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
         rule.onNodeWithTag("game-result-dialog").assertDoesNotExist()
         assertEquals(finished, state.match!!.state)
     }
