@@ -942,7 +942,15 @@ internal fun PointPicker(
                     ),
                 )
             FilterChip(
-                selected = n == selected || available,
+                selected = n == selected,
+                // A legal destination is available, not an already selected piece.
+                // Keep the visual cue without reporting multiple selections to accessibility.
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = if (available) MaterialTheme.colorScheme.secondaryContainer
+                        else Color.Transparent,
+                    labelColor = if (available) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
                 onClick = { onTap(n) },
                 enabled = enabled,
                 modifier =

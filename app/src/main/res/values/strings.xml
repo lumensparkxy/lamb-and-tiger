@@ -53,7 +53,7 @@
     <string name="hint_step">Try %1$s → %2$s.</string>
     <string name="hint_capture">Try %1$s → %2$s, capturing at %3$s.</string>
     <string name="last_move">Last move: %1$s</string>
-    <string name="board_label">23-point board. Use the point buttons below for accessible play.</string>
+    <string name="board_label">23-point board.</string>
     <string name="point_picker">Choose a board point</string>
     <string name="point_description">Point %1$s, %2$s, %3$s</string>
     <string name="empty">empty</string>
