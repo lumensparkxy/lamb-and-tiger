@@ -1,7 +1,6 @@
 package com.maswadkar.lambandtiger
 
 import androidx.compose.ui.test.*
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import com.maswadkar.lambandtiger.game.*
 import org.junit.Assert.*
@@ -39,7 +38,6 @@ class SoloFlowTest {
             rule.activity.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         }
         start()
-        rule.onNodeWithTag("show-controls").performClick()
         val polite = SemanticsMatcher.expectValue(
             androidx.compose.ui.semantics.SemanticsProperties.LiveRegion,
             androidx.compose.ui.semantics.LiveRegionMode.Polite,
@@ -91,30 +89,29 @@ class SoloFlowTest {
     }
 
     @Test
-    fun hiddenControlsRevealWithoutChangingMatch() {
+    fun directBoardKeepsActionsReachableWithoutPointList() {
         start()
         val before = vm.ui.value.match!!
-        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
         rule.onNodeWithTag("play-board").assertIsDisplayed()
+        rule.onNodeWithText(rule.activity.getString(R.string.choose_point)).assertDoesNotExist()
         rule.onNodeWithTag("play-board").performTouchInput { swipeUp() }
-        rule.onNodeWithTag("controls-panel").assertIsDisplayed()
-        val boardBounds = rule.onNodeWithTag("play-board").fetchSemanticsNode().boundsInRoot
-        val panelBounds = rule.onNodeWithTag("controls-panel").fetchSemanticsNode().boundsInRoot
-        assertTrue("Controls must not cover the board",
-            boardBounds.bottom <= panelBounds.top || boardBounds.right <= panelBounds.left)
+        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
+        for (label in listOf(R.string.hint, R.string.undo)) {
+            val action = rule.onNodeWithText(rule.activity.getString(label))
+            if (!action.isDisplayed()) action.performScrollTo()
+            action.assertIsDisplayed()
+        }
         assertEquals(before.state.events, vm.ui.value.match!!.state.events)
         assertFalse(vm.ui.value.paused)
-        rule.onNodeWithTag("hide-controls").performClick()
-        rule.onNodeWithTag("controls-panel").assertDoesNotExist()
-        rule.onNodeWithTag("show-controls").performClick()
-        rule.onNodeWithContentDescription("Point B, empty, available destination")
-            .performScrollTo().assertIsNotSelected()
-            .assertHeightIsAtLeast(48.dp)
-            .performClick()
-        rule.waitUntil(10000) { vm.ui.value.match?.state?.eventCount == 2 && !vm.ui.value.busy }
-        rule.onNodeWithTag("hide-controls").performClick()
-        assertEquals(before.id, vm.ui.value.match!!.id)
-        rule.onNodeWithTag("play-board").assertIsDisplayed()
+    }
+
+    private fun selectPoint(node: Node) {
+        val density = rule.activity.resources.displayMetrics.density
+        rule.onNodeWithTag("play-board").performTouchInput {
+            val scale = minOf((width - 36f * density) / 10, (height - 60f * density) / 8)
+            val point = Board.points.getValue(node)
+            click(androidx.compose.ui.geometry.Offset(width / 2f + point.x * scale, height / 2f + (point.y - 4) * scale))
+        }
     }
 
     @Test
@@ -183,11 +180,7 @@ class SoloFlowTest {
     @Test
     fun placementComputerReplyHintUndoAndPause() {
         start()
-        rule.onNodeWithTag("show-controls").performClick()
-        rule
-            .onNodeWithContentDescription("Point B, empty, available destination")
-            .performScrollTo()
-            .performClick()
+        selectPoint(Node.B)
         rule.waitUntil(10000) { vm.ui.value.match?.state?.eventCount == 2 && !vm.ui.value.busy }
         rule.runOnIdle { vm.hint() }
         ready()
@@ -225,7 +218,6 @@ class SoloFlowTest {
     fun completeSoloGamesAsBothSides() {
         for (side in Side.entries) {
             start(side)
-            rule.onNodeWithTag("show-controls").performClick()
             var turns = 0
             while (vm.ui.value.match!!.state.outcome == Outcome.ONGOING && turns < 400) {
                 rule.waitUntil(10000) {
@@ -236,12 +228,6 @@ class SoloFlowTest {
                 val state = vm.ui.value.match!!.state
                 if (state.outcome != Outcome.ONGOING) break
                 val a = Computer.choose(state, Difficulty.EASY, turns.toLong())!!.action
-                fun selectPoint(node: Node) {
-                    rule
-                        .onNode(hasContentDescription("Point ${node.name},", substring = true))
-                        .performScrollTo()
-                        .performClick()
-                }
                 a.origin?.let(::selectPoint)
                 selectPoint(a.destination)
                 rule.waitUntil(10000) {
@@ -256,10 +242,10 @@ class SoloFlowTest {
             )
             assertFalse(vm.ui.value.hasSave)
             val finished = vm.ui.value.match!!
-            rule.runOnIdle {
-                vm.openSetup(switch = true)
-                vm.requestStart()
+            rule.waitUntil(10000) {
+                rule.onAllNodesWithTag("game-result-dialog").fetchSemanticsNodes().isNotEmpty()
             }
+            rule.onNodeWithText(rule.activity.getString(R.string.switch_sides)).performScrollTo().performClick()
             rule.waitUntil(10000) { !vm.ui.value.busy && vm.ui.value.match?.id != finished.id }
             assertEquals(finished.human.other(), vm.ui.value.match!!.human)
             assertEquals(finished.difficulty, vm.ui.value.match!!.difficulty)
@@ -312,7 +298,7 @@ class SoloFlowTest {
     }
 
     @Test
-    fun tutorialNeverChangesSaveAndNearbyStaysDeferred() {
+    fun tutorialNeverChangesSaveAndNearbyEntryOffersHostAndJoin() {
         start()
         val id = vm.ui.value.match!!.id
         val before = vm.ui.value.match!!.state.events
@@ -333,6 +319,9 @@ class SoloFlowTest {
             vm.home()
             vm.navigate(Screen.NEARBY)
         }
-        rule.onNodeWithText(rule.activity.getString(R.string.nearby_deferred)).assertIsDisplayed()
+        rule.onNodeWithText(rule.activity.getString(R.string.friend_host)).assertIsDisplayed()
+        rule.onNodeWithText(rule.activity.getString(R.string.friend_join)).assertIsDisplayed()
+        assertEquals(id, vm.ui.value.match!!.id)
+        assertEquals(before, vm.ui.value.match!!.state.events)
     }
 }

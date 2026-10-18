@@ -1,4 +1,11 @@
 <resources>
+    <string name="game_menu">பட்டி</string>
+    <string name="choose_point">ஒரு புள்ளியைத் தேர்ந்தெடு</string>
+    <string name="reserve_label">வைக்க வேண்டிய ஆடுகள்</string>
+    <string name="captured_label">பிடிக்கப்பட்ட ஆடுகள்</string>
+    <string name="capture_value">%1$d / 5</string>
+    <string name="tap_to_place">ஆட்டை வைக்க ஒரு காலிப் புள்ளியைத் தட்டவும்.</string>
+    <string name="lambs_move_later">15 ஆடுகளையும் வைத்த பிறகு ஆடுகளை நகர்த்தலாம்.</string>
     <string name="app_name">ஆடும் புலியும்</string>
     <string name="play_ai">கணினியுடன் விளையாடு</string>
     <string name="play_ai_subtitle">கணினியுடன் போட்டியிடுங்கள்</string>
@@ -73,6 +80,8 @@
     <string name="reason_repetition">ஒரே நிலை மூன்று முறை வந்தது</string>
     <string name="reason_agreement">இருவரின் ஒப்புதலால்</string>
     <string name="play_again">மீண்டும் விளையாடு</string>
+    <string name="view_result">முடிவைப் பார்</string>
+    <string name="view_board">பலகையைப் பார்</string>
     <string name="switch_sides">அணியை மாற்று</string>
     <string name="nearby_deferred">இந்த உருவாக்கப் பதிப்பில் அருகிலுள்ள விளையாட்டு இல்லை. இரண்டு கைபேசிச் சோதனை ஒத்திவைக்கப்பட்டுள்ளது. கணினியுடன் இணையமின்றி விளையாடலாம்.</string>
     <string name="recovery_title">விளையாட்டை மீட்டெடுக்க வேண்டும்</string>
@@ -124,7 +133,7 @@
     <string name="place_compact">காலியான புள்ளியில் ஓர் ஆட்டை வைக்கவும்</string>
     <string name="move_compact">காயைத் தேர்ந்தெடுத்து, செல்லும் இடத்தைத் தேர்ந்தெடுக்கவும்</string>
     <string name="play_title">ஆடும் புலியும்</string>
-    <string name="play_board_label">23 புள்ளிகள் கொண்ட பலகை. புள்ளியைத் தேர்ந்தெடுக்க கட்டுப்பாடுகளைத் திறக்கவும்.</string>
+    <string name="play_board_label">23 புள்ளிகள் கொண்ட பலகை. விளையாட ஒரு காய் அல்லது காலிப் புள்ளியைத் தொடவும்.</string>
     <string name="friend_host">விளையாட்டை நடத்துங்கள்</string>
     <string name="friend_join">விளையாட்டில் இணையுங்கள்</string>
     <string name="friend_continue">அருகிலுள்ள விளையாட்டைத் தொடருங்கள்</string>

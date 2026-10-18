@@ -1,4 +1,11 @@
 <resources>
+    <string name="game_menu">Menu</string>
+    <string name="choose_point">Choose a point</string>
+    <string name="reserve_label">Lambs to place</string>
+    <string name="captured_label">Lambs captured</string>
+    <string name="capture_value">%1$d / 5</string>
+    <string name="tap_to_place">Tap an empty point to place a lamb.</string>
+    <string name="lambs_move_later">Lambs move after all 15 are placed.</string>
     <string name="app_name">Lamb and Tiger</string>
     <string name="play_ai">Play AI</string>
     <string name="play_ai_subtitle">Challenge the computer</string>
@@ -73,6 +80,8 @@
     <string name="reason_repetition">Threefold repetition</string>
     <string name="reason_agreement">By agreement</string>
     <string name="play_again">Play Again</string>
+    <string name="view_result">View Result</string>
+    <string name="view_board">View Board</string>
     <string name="switch_sides">Switch Sides</string>
     <string name="nearby_deferred">Nearby play is not available in this development build. Two-phone testing is deferred. Play AI works offline.</string>
     <string name="recovery_title">Game needs recovery</string>
@@ -124,7 +133,7 @@
     <string name="place_compact">Place a lamb</string>
     <string name="move_compact">Choose a piece, then a destination</string>
     <string name="play_title">Lamb and Tiger</string>
-    <string name="play_board_label">23-point board. Open Controls for accessible point selection.</string>
+    <string name="play_board_label">23-point board. Tap a piece or an empty point to play.</string>
     <string name="friend_host">Host Game</string>
     <string name="friend_join">Join Game</string>
     <string name="friend_continue">Continue Nearby game</string>

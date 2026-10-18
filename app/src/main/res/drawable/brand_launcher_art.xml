@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Preserve the approved square artwork, including its built-in safe-area padding. -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/brand_icon"
+    android:gravity="fill"
+    android:filter="true" />

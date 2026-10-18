@@ -7,39 +7,27 @@ import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maswadkar.lambandtiger.game.*
-import kotlin.math.hypot
 
 private val difficultyNames =
     listOf(
@@ -77,15 +65,18 @@ private val instructions =
     )
 private val light =
     lightColorScheme(
-        primary = Color(0xFF285747),
+        primary = Color(0xFF246657),
         onPrimary = Color.White,
         secondary = Color(0xFF80531B),
-        background = Color(0xFFF8F6F0),
-        surface = Color(0xFFF8F6F0),
+        background = Color(0xFFF7F3EA),
+        surface = Color(0xFFF7F3EA),
         surfaceVariant = Color(0xFFEAECE2),
         surfaceContainerHighest = Color(0xFFE6EBDD),
         secondaryContainer = Color(0xFFE6EBDD),
-        onSurface = Color(0xFF202B26),
+        onSurface = Color(0xFF23332F),
+        onBackground = Color(0xFF23332F),
+        outline = Color(0xFF246657),
+        outlineVariant = Color(0xFFCED4C9),
         onSurfaceVariant = Color(0xFF465249),
     )
 private val dark =
@@ -99,6 +90,9 @@ private val dark =
         surfaceContainerHighest = Color(0xFF29382F),
         secondaryContainer = Color(0xFF3B4938),
         onSurface = Color(0xFFF0F0E6),
+        onBackground = Color(0xFFF0F0E6),
+        outline = Color(0xFF8CAB9B),
+        outlineVariant = Color(0xFF46594D),
         onSurfaceVariant = Color(0xFFCCD6CC),
     )
 
@@ -168,7 +162,7 @@ fun LambAndTiger(vm: GameViewModel) {
                     }
                 else
                     Column(Modifier.fillMaxSize()) {
-                        if (s.screen != Screen.GAME) Row(
+                        if (s.screen != Screen.GAME && s.screen != Screen.HOME) Row(
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -271,6 +265,19 @@ private fun Title(id: Int) {
 @Composable
 private fun Home(s: UiState, vm: GameViewModel) {
     Page {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFFF7F3EA),
+            shape = RoundedCornerShape(24.dp),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.brand_logo),
+                contentDescription = stringResource(R.string.play_title),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().height(156.dp).padding(16.dp)
+                    .testTag("home-brand-logo"),
+            )
+        }
         Text(
             stringResource(R.string.offline),
             style = MaterialTheme.typography.labelMedium,
@@ -285,16 +292,6 @@ private fun Home(s: UiState, vm: GameViewModel) {
             stringResource(R.string.home_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Card(shape = RoundedCornerShape(24.dp)) {
-            BoardView(
-                GameEngine.newGame(),
-                null,
-                emptyList(),
-                null,
-                {},
-                Modifier.fillMaxWidth().height(220.dp),
-            )
-        }
         if (s.hasSave)
             Button(
                 onClick = vm::continueGame,
@@ -414,506 +411,254 @@ private fun actionLabel(action: Action): String =
             )
     }
 
-/** The controls are disclosure UI, not a pause: accessible point play stays available
- * while the panel is open. Rules/Settings retain the coordinator's explicit pause rules. */
+/** Board interaction is direct; Hint and Undo remain visible below it. */
 @Composable
-private fun GameScreen(s: UiState, vm: GameViewModel) {
+internal fun GameScreen(s: UiState, vm: GameViewModel) {
     val match = s.match ?: return
-    val state = match.state
-    var controls by rememberSaveable(match.id) { mutableStateOf(false) }
-    LaunchedEffect(state.outcome) {
-        if (state.outcome != Outcome.ONGOING) controls = true
+    val finished = match.state.outcome != Outcome.ONGOING
+    var resultDismissed by rememberSaveable(match.id) { mutableStateOf(false) }
+    var resultReady by remember(match.id, finished) { mutableStateOf(false) }
+    LaunchedEffect(match.id, finished) {
+        if (finished) {
+            // Let the final confirmed capture/move settle before presenting its result.
+            if (!s.preferences.reduced) kotlinx.coroutines.delay(400)
+            resultReady = true
+        }
     }
-    BackHandler(controls) { controls = false }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val landscape = maxWidth > maxHeight
-        val statusHeight = maxHeight * .26f
-        val reveal = { controls = true }
-        if (landscape) {
-            Row(Modifier.fillMaxSize()) {
-                PlayBoard(s, vm, Modifier.weight(1f).fillMaxHeight(), reveal)
-                if (controls) PlayControls(s, vm, Modifier.width(300.dp).fillMaxHeight(), showFeedback = true) { controls = false }
-                else Column(
-                    Modifier.width(160.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(stringResource(R.string.play_title), fontWeight = FontWeight.Bold)
-                    TextButton(onClick = vm::back) { Text(stringResource(R.string.back)) }
-                    CompactPlayStatus(s, vm)
+    var menu by remember { mutableStateOf(false) }
+    var moving by remember(match.id) { mutableStateOf(false) }
+    val scroll = rememberScrollState()
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=4.dp), verticalAlignment=Alignment.CenterVertically) {
+            TextButton(onClick=vm::back) { Text(stringResource(R.string.back)) }
+            Text(stringResource(R.string.play_title),Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+            Box {
+                TextButton(onClick={ menu=true },modifier=Modifier.testTag("game-menu")) { Text(stringResource(R.string.game_menu)) }
+                DropdownMenu(expanded=menu,onDismissRequest={ menu=false }) {
+                    if (finished) DropdownMenuItem(text={ Text(stringResource(R.string.view_result)) },
+                        onClick={ menu=false;resultDismissed=false })
+                    DropdownMenuItem(text={ Text(stringResource(R.string.rules)) },onClick={menu=false;vm.navigate(Screen.RULES)},enabled=!s.busy)
+                    DropdownMenuItem(text={ Text(stringResource(R.string.settings)) },onClick={menu=false;vm.navigate(Screen.SETTINGS)},enabled=!s.busy)
+                    DropdownMenuItem(text={ Text(stringResource(R.string.save_home)) },onClick={menu=false;vm.back()},enabled=!s.busy)
+                }
+            }
+        }
+        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            val landscape=maxWidth>maxHeight
+            val railWidth=if(maxWidth>=840.dp) 300.dp else 244.dp
+            val scrolling=maxHeight<680.dp || LocalDensity.current.fontScale>1.3f
+            val playable=vm.playable(s) && !moving
+            val board: @Composable (Modifier) -> Unit = { modifier ->
+                key(match.id) {
+                    BoardView(match.state,s.selected,if(playable) GameEngine.available(match.state) else emptyList(),
+                        s.hint,vm::tap,modifier.testTag("play-board"),last=s.lastAction,immersive=true,
+                        reducedMotion=s.preferences.reduced,motionEnabled=!s.paused,onMotionRunning={ moving=it })
+                }
+            }
+            if (landscape) Row(Modifier.fillMaxSize()) {
+                board(Modifier.weight(1f).fillMaxHeight())
+                Column(Modifier.width(railWidth).fillMaxHeight()
+                    .verticalScroll(scroll).padding(horizontal=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
                     MatchIdentity(s)
-                    TextButton(onClick = reveal, modifier = Modifier.testTag("show-controls").heightIn(min = 48.dp)) {
-                        Text(stringResource(R.string.show_controls))
-                    }
+                    TabletopTurn(s,vm)
+                    TabletopCounts(match.state)
+                    TabletopActions(s,vm,playable,onShowResult={ resultDismissed=false })
+                }
+            } else {
+                val boardHeight=(maxWidth-36.dp)*.8f+60.dp
+                Column(Modifier.fillMaxSize().then(if(scrolling) Modifier.verticalScroll(scroll) else Modifier),
+                    horizontalAlignment=Alignment.CenterHorizontally) {
+                    MatchIdentity(s,Modifier.padding(horizontal=18.dp,vertical=10.dp))
+                    TabletopTurn(s,vm,Modifier.padding(horizontal=18.dp,vertical=8.dp))
+                    board(if(scrolling) Modifier.fillMaxWidth().height(boardHeight)
+                        else Modifier.fillMaxWidth().weight(1f))
+                    TabletopCounts(match.state,Modifier.padding(horizontal=18.dp,vertical=14.dp))
+                    TabletopActions(s,vm,playable,Modifier.padding(horizontal=18.dp,vertical=8.dp),
+                        onShowResult={ resultDismissed=false })
                 }
             }
-        } else Column(Modifier.fillMaxSize()) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = vm::back) { Text(stringResource(R.string.back)) }
-                Text(stringResource(R.string.play_title), modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
-                if (!controls) TextButton(onClick = reveal,
-                    modifier = Modifier.testTag("show-controls").heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.controls))
-                }
-            }
-            Column(Modifier.heightIn(max = statusHeight).verticalScroll(rememberScrollState())) {
-                CompactPlayStatus(s, vm, Modifier.padding(horizontal = 12.dp, vertical = 2.dp))
-                if (!controls) MatchIdentity(s, Modifier.padding(horizontal = 12.dp))
-            }
-            // Width is the portrait limit. Reserve exactly the natural board height
-            // when controls open; on short/large-text windows share the remaining space.
-            if (controls) {
-                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                    val boardHeight = minOf((maxWidth - 36.dp) * .8f + 60.dp, maxHeight * .58f)
-                    Column(Modifier.fillMaxSize()) {
-                        PlayBoard(s, vm, Modifier.fillMaxWidth().height(boardHeight), reveal)
-                        PlayControls(s, vm, Modifier.weight(1f).fillMaxWidth()) { controls = false }
-                    }
-                }
-            } else PlayBoard(s, vm, Modifier.weight(1f).fillMaxWidth(), reveal)
         }
     }
-}
-
-@Composable
-private fun PlayControls(s: UiState, vm: GameViewModel, modifier: Modifier, showFeedback: Boolean = false, hide: () -> Unit) {
-    val match = s.match ?: return
-    val state = match.state
-    Surface(modifier.testTag("controls-panel"),
-        color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
-        Column {
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                    .pointerInput(Unit) {
-                        var distance = 0f
-                        detectVerticalDragGestures(
-                            onDragStart = { distance = 0f },
-                            onVerticalDrag = { change, amount ->
-                                change.consume()
-                                distance += amount
-                                if (distance > 48.dp.toPx()) hide()
-                            },
-                        )
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = { hide() }, modifier = Modifier.testTag("hide-controls")) {
-                    Text(stringResource(R.string.hide_controls))
+    if (s.message != null) {
+        AlertDialog(
+            modifier = Modifier.testTag("game-error-dialog"),
+            containerColor = MaterialTheme.colorScheme.surface,
+            onDismissRequest = vm::dismissMessage,
+            text = {
+                Text(stringResource(s.message), color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                        .semantics { liveRegion = LiveRegionMode.Polite })
+            },
+            confirmButton = {
+                TextButton(onClick = vm::dismissMessage) {
+                    Text(stringResource(android.R.string.ok))
                 }
-            }
-            HorizontalDivider()
-            Column(
-                Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // Portrait already keeps this feedback above the board. In landscape
-                // the controls replace that rail, so retain its status and announcements here.
-                if (showFeedback) CompactPlayStatus(s, vm)
-                if (state.outcome != Outcome.ONGOING) GameControls(s, vm, showStatus = false)
-                else {
-                    if (s.paused && !showFeedback) Button(onClick = vm::resume, enabled = !s.busy) {
-                        Text(stringResource(R.string.resume))
-                    }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = vm::hint, enabled = vm.playable()) {
-                            Text(stringResource(R.string.hint))
-                        }
-                        OutlinedButton(onClick = vm::undo,
-                            enabled = vm.playable() && GameEngine.undoPrefix(state, match.human) != null) {
-                            Text(stringResource(R.string.undo))
-                        }
-                        TextButton(onClick = { vm.navigate(Screen.RULES) }, enabled = !s.busy) {
-                            Text(stringResource(R.string.rules))
-                        }
-                        TextButton(onClick = { vm.navigate(Screen.SETTINGS) }, enabled = !s.busy) {
-                            Text(stringResource(R.string.settings))
-                        }
-                    }
-                    TextButton(onClick = vm::back, enabled = !s.busy) {
-                        Text(stringResource(R.string.save_home))
-                    }
-                    Text(stringResource(if (state.position.phase == Phase.PLACEMENT && match.human == Side.LAMB)
-                        R.string.place_instruction else R.string.move_instruction))
-                }
-                PointPicker(state, s.selected,
-                    if (vm.playable()) GameEngine.available(state) else emptyList(),
-                    vm.playable(), vm::tap)
-                GameStatus(s)
-                s.lastAction?.let {
-                    Text(stringResource(R.string.last_move, moveLabel(it)))
-                }
-            }
-        }
+            },
+        )
+    } else if (finished && resultReady && !resultDismissed) {
+        GameResultDialog(s,vm,onDismiss={ resultDismissed=true })
     }
 }
 
 @Composable
 private fun MatchIdentity(s: UiState, modifier: Modifier = Modifier) {
-    val match = s.match ?: return
-    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 40.dp)) {
-            Image(painterResource(if (match.human == Side.LAMB) R.drawable.lamb_portrait else R.drawable.tiger_portrait),
-                contentDescription = null, modifier = Modifier.size(32.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(if (match.human == Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
-                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+    val match=s.match ?: return
+    FlowRow(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
+            AnimalIcon(match.human,Modifier.size(36.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(if(match.human==Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
+                style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold)
         }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 40.dp)) {
-            Image(painterResource(if (match.human == Side.LAMB) R.drawable.tiger_portrait else R.drawable.lamb_portrait),
-                contentDescription = null, modifier = Modifier.size(28.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(difficultyNames[match.difficulty.ordinal]),
-                style = MaterialTheme.typography.labelMedium)
+        Row(Modifier.heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
+            AnimalIcon(match.human.other(),Modifier.size(36.dp))
+            Spacer(Modifier.width(8.dp))
+            Column {
+                Text(stringResource(R.string.play_ai),style=MaterialTheme.typography.labelLarge,fontWeight=FontWeight.SemiBold)
+                Text(stringResource(difficultyNames[match.difficulty.ordinal]),style=MaterialTheme.typography.labelMedium)
+            }
         }
     }
 }
 
 @Composable
-private fun CompactPlayStatus(s: UiState, vm: GameViewModel, modifier: Modifier = Modifier) {
-    val match = s.match ?: return
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        val title = when {
-            match.state.outcome == Outcome.TIGERS_WIN -> R.string.win_tigers
-            match.state.outcome == Outcome.LAMBS_WIN -> R.string.win_lambs
-            match.state.outcome != Outcome.ONGOING -> R.string.draw
-            s.busy -> R.string.saving
-            s.paused -> R.string.paused
-            match.state.position.turn != match.human -> R.string.thinking
-            else -> R.string.your_turn
+private fun TabletopTurn(s: UiState,vm: GameViewModel,modifier: Modifier=Modifier) {
+    val match=s.match ?: return
+    val state=match.state
+    val title=when {
+        state.outcome==Outcome.TIGERS_WIN -> R.string.win_tigers
+        state.outcome==Outcome.LAMBS_WIN -> R.string.win_lambs
+        state.outcome!=Outcome.ONGOING -> R.string.draw
+        s.busy -> R.string.saving
+        s.paused -> R.string.paused
+        state.sideToMove!=match.human -> R.string.thinking
+        else -> R.string.your_turn
+    }
+    val spoken=listOfNotNull(stringResource(title),stringResource(R.string.reserve_count,state.position.reserve),
+        stringResource(R.string.captured_count,state.position.captured),s.lastAction?.let { stringResource(R.string.last_move,moveLabel(it)) }).joinToString(". ")
+    Column(modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(3.dp)) {
+        Text(stringResource(title),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold,
+            modifier=Modifier.clearAndSetSemantics {contentDescription=spoken;liveRegion=LiveRegionMode.Polite})
+        // Hints replace the ordinary instruction, without adding rows to the layout.
+        val instructionHeight = with(LocalDensity.current) {
+            (MaterialTheme.typography.titleMedium.lineHeight * 2).toDp()
         }
-        val spokenStatus = listOfNotNull(
-            stringResource(title),
-            stringResource(R.string.reserve_count, match.state.position.reserve),
-            stringResource(R.string.captured_count, match.state.position.captured),
-            s.lastAction?.let { stringResource(R.string.last_move, moveLabel(it)) },
-        ).joinToString(". ")
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(title), style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold, modifier = Modifier.clearAndSetSemantics {
-                    contentDescription = spokenStatus
-                    liveRegion = LiveRegionMode.Polite
-                })
-            if (vm.playable()) Text(
-                stringResource(if (match.state.position.phase == Phase.PLACEMENT && match.human == Side.LAMB)
-                    R.string.place_compact else R.string.move_compact),
-                style = MaterialTheme.typography.bodyMedium)
+        key(s.hint) {
+            Column(
+                Modifier.fillMaxWidth().height(instructionHeight)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                if (s.hint != null) {
+                    Text(actionLabel(s.hint), style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                } else if (vm.playable(s)) {
+                    Text(stringResource(if(state.position.phase==Phase.PLACEMENT && match.human==Side.LAMB)
+                        R.string.place_compact else R.string.move_compact),
+                        style=MaterialTheme.typography.titleMedium,
+                        textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+                }
+            }
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.reserve_compact, match.state.position.reserve),
-                style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.captured_compact, match.state.position.captured),
-                style = MaterialTheme.typography.bodySmall)
-        }
-        if (s.paused && match.state.outcome == Outcome.ONGOING)
-            Button(onClick = vm::resume, enabled = !s.busy) { Text(stringResource(R.string.resume)) }
-        s.hint?.let { Text(actionLabel(it), style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-        s.message?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
+        Text(stringResource(if(state.position.phase==Phase.PLACEMENT) R.string.phase_placement else R.string.phase_movement),
+            style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+        if(s.paused && state.outcome==Outcome.ONGOING) Button(onClick=vm::resume,enabled=!s.busy) {Text(stringResource(R.string.resume))}
     }
 }
 
 @Composable
-private fun PlayBoard(s: UiState, vm: GameViewModel, modifier: Modifier, reveal: () -> Unit) {
-    val state = s.match?.state ?: return
-    BoxWithConstraints(modifier.pointerInput(Unit) {
-        var distance = 0f
-        detectVerticalDragGestures(
-            onDragStart = { distance = 0f },
-            onVerticalDrag = { change, amount ->
-                distance += amount
-                if (distance < -48.dp.toPx()) { change.consume(); reveal() }
-            },
-        )
-    }, contentAlignment = Alignment.Center) {
-        Image(painterResource(if (maxHeight > maxWidth) R.drawable.woodland_board_portrait else R.drawable.woodland_board), contentDescription = null,
-            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
-            alpha = if (s.preferences.dark) .13f else .8f)
-        BoardView(state, s.selected,
-            if (vm.playable()) GameEngine.available(state) else emptyList(),
-            s.hint, vm::tap, Modifier.fillMaxSize().testTag("play-board"),
-            last = s.lastAction, immersive = true)
+private fun TabletopCounts(state: GameState,modifier: Modifier=Modifier) {
+    Row(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.reserve_label),style=MaterialTheme.typography.bodyMedium)
+            Text(state.position.reserve.toString(),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold)
+        }
+        Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.captured_label),style=MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.capture_value,state.position.captured),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.SemiBold)
+        }
     }
 }
 
 @Composable
-private fun GameStatus(s: UiState) {
-    val match = s.match ?: return
-    val p = match.state.position
-    Text(stringResource(R.string.play_ai), style = MaterialTheme.typography.labelLarge)
-    Text(
-        stringResource(
-            if (match.human == Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers
-        ),
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-    )
-    Text(
-        stringResource(difficultyNames[match.difficulty.ordinal]),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(
-            stringResource(
-                if (p.phase == Phase.PLACEMENT) R.string.phase_placement
-                else R.string.phase_movement
-            ),
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(stringResource(R.string.event_count, match.state.eventCount))
-    }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(stringResource(R.string.reserve_count, p.reserve))
-        Text(stringResource(R.string.captured_count, p.captured))
+private fun TabletopActions(s: UiState,vm: GameViewModel,playable: Boolean,modifier: Modifier=Modifier,onShowResult: () -> Unit) {
+    val match=s.match ?: return
+    val finished=match.state.outcome!=Outcome.ONGOING
+    Box(modifier.fillMaxWidth(),contentAlignment=Alignment.Center) {
+        // Retain the exact control footprint when replacing it with View Result.
+        Column(Modifier.fillMaxWidth().then(if(finished) Modifier.alpha(0f).clearAndSetSemantics {} else Modifier),
+            horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            val placing=match.state.position.phase==Phase.PLACEMENT && match.human==Side.LAMB
+            Text(stringResource(if(placing) R.string.tap_to_place else R.string.move_instruction),style=MaterialTheme.typography.bodyMedium,
+                textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+            if(placing) Text(stringResource(R.string.lambs_move_later),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(onClick=vm::hint,enabled=playable,modifier=Modifier.weight(1f).heightIn(min=48.dp),shape=RoundedCornerShape(12.dp)) {
+                    Icon(painterResource(R.drawable.ic_hint),null,Modifier.size(22.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.hint))
+                }
+                OutlinedButton(onClick=vm::undo,enabled=playable && GameEngine.undoPrefix(match.state,match.human)!=null,
+                    modifier=Modifier.weight(1f).heightIn(min=48.dp),shape=RoundedCornerShape(12.dp)) {
+                    Icon(painterResource(R.drawable.ic_undo),null,Modifier.size(22.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.undo))
+                }
+            }
+        }
+        if(finished) OutlinedButton(onClick=onShowResult,modifier=Modifier.testTag("view-result")) {
+            Text(stringResource(R.string.view_result))
+        }
     }
 }
 
 @Composable
-private fun GameControls(s: UiState, vm: GameViewModel, showStatus: Boolean = true) {
+private fun GameResultDialog(s: UiState, vm: GameViewModel, onDismiss: () -> Unit) {
     val match = s.match ?: return
     val outcome = match.state.outcome
-    if (showStatus) GameStatus(s)
-    if (outcome != Outcome.ONGOING) {
-        Text(
-            stringResource(
-                when (outcome) {
-                    Outcome.TIGERS_WIN -> R.string.win_tigers
-                    Outcome.LAMBS_WIN -> R.string.win_lambs
-                    else -> R.string.draw
-                }
-            ),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
-        Text(
-            stringResource(
-                when (outcome) {
-                    Outcome.TIGERS_WIN -> R.string.reason_tigers
-                    Outcome.LAMBS_WIN -> R.string.reason_lambs
-                    Outcome.REPETITION_DRAW -> R.string.reason_repetition
-                    else -> R.string.reason_agreement
-                }
-            )
-        )
-        Button(
-            onClick = {
-                vm.openSetup()
-                vm.requestStart()
-            }
-        ) {
-            Text(stringResource(R.string.play_again))
-        }
-        OutlinedButton(
-            onClick = {
-                vm.openSetup(switch = true)
-                vm.requestStart()
-            }
-        ) {
-            Text(stringResource(R.string.switch_sides))
-        }
-        TextButton(onClick = vm::home) { Text(stringResource(R.string.home)) }
-    } else {
-        Text(
-            stringResource(
-                when {
-                    s.busy -> R.string.saving
-                    s.paused -> R.string.paused
-                    match.state.position.turn != match.human -> R.string.thinking
-                    else -> R.string.your_turn
-                }
-            ),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
-        if (s.paused)
-            Button(onClick = vm::resume, enabled = !s.busy) {
-                Text(stringResource(R.string.resume))
-            }
-        else
-            Text(
-                stringResource(
-                    if (match.state.position.turn == Side.LAMB && match.state.position.reserve > 0)
-                        R.string.place_instruction
-                    else R.string.move_instruction
-                )
-            )
-        if (s.hint != null)
-            Text(
-                actionLabel(s.hint),
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-        if (s.lastAction != null)
-            Text(
-                stringResource(R.string.last_move, moveLabel(s.lastAction)),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        if (s.message != null)
-            Text(
-                stringResource(s.message),
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = vm::hint, enabled = vm.playable()) {
-                Text(stringResource(R.string.hint))
-            }
-            OutlinedButton(
-                onClick = vm::undo,
-                enabled = vm.playable() && GameEngine.undoPrefix(match.state, match.human) != null,
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = RoundedCornerShape(28.dp), tonalElevation = 6.dp) {
+            Column(
+                Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(24.dp).testTag("game-result-dialog"),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(stringResource(R.string.undo))
-            }
-            TextButton(onClick = { vm.navigate(Screen.RULES) }, enabled = !s.busy) {
-                Text(stringResource(R.string.rules))
-            }
-            TextButton(onClick = { vm.navigate(Screen.SETTINGS) }, enabled = !s.busy) {
-                Text(stringResource(R.string.settings))
-            }
-        }
-        OutlinedButton(onClick = vm::back, enabled = !s.busy) {
-            Text(stringResource(R.string.save_home))
-        }
-    }
-}
-
-@Composable
-internal fun BoardView(
-    state: GameState,
-    selected: Node?,
-    actions: List<Action>,
-    hint: Action?,
-    onTap: (Node) -> Unit,
-    modifier: Modifier,
-    last: Action? = null,
-    immersive: Boolean = false,
-) {
-    val tigerImage = ImageBitmap.imageResource(R.drawable.tiger_portrait)
-    val lambImage = ImageBitmap.imageResource(R.drawable.lamb_portrait)
-    val lines = if (immersive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    val selectedColor = MaterialTheme.colorScheme.primary
-    val canvasLabel = stringResource(if (immersive) R.string.play_board_label else R.string.board_label)
-    val destinations =
-        actions
-            .filter { it is Action.Place || it.origin == selected }
-            .map { it.destination }
-            .toSet()
-    Canvas(
-        modifier
-            .padding(if (immersive) 0.dp else 14.dp)
-            .semantics { contentDescription = canvasLabel }
-            .pointerInput(state, selected, actions) {
-                detectTapGestures { tap ->
-                    if (actions.isNotEmpty()) {
-                        val margin = (if (immersive) 18.dp else 25.dp).toPx()
-                        val n =
-                            Node.entries.minBy {
-                                val p =
-                                    boardPoint(
-                                        size.width.toFloat(),
-                                        size.height.toFloat(),
-                                        margin,
-                                        it,
-                                        margin + if (immersive) 12.dp.toPx() else 0f,
-                                    )
-                                hypot(tap.x - p.x, tap.y - p.y)
-                            }
-                        val p = boardPoint(size.width.toFloat(), size.height.toFloat(), margin, n, margin + if (immersive) 12.dp.toPx() else 0f)
-                        if (hypot(tap.x - p.x, tap.y - p.y) <= 24.dp.toPx()) onTap(n)
-                    }
-                }
-            }
-    ) {
-        val margin = (if (immersive) 18.dp else 25.dp).toPx()
-        val verticalMargin = margin + if (immersive) 12.dp.toPx() else 0f
-        val scale = minOf((size.width - 2 * margin) / 10, (size.height - 2 * verticalMargin) / 8)
-        val pieceRadius = minOf(if (immersive) 16.dp.toPx() else 10.dp.toPx(), scale * .29f)
-        fun point(n: Node) = boardPoint(size.width, size.height, margin, n, verticalMargin)
-        Board.edges.forEach {
-            drawLine(lines.copy(alpha = if (immersive) .95f else .65f), point(it.from), point(it.to), (if (immersive) 2.2.dp else 1.8.dp).toPx())
-        }
-        fun portrait(bitmap: ImageBitmap, c: Offset, radius: Float) {
-            val diameter = (radius * 2).toInt().coerceAtLeast(1)
-            drawImage(bitmap, dstOffset = IntOffset((c.x - radius).toInt(), (c.y - radius).toInt()),
-                dstSize = IntSize(diameter, diameter))
-        }
-        Node.entries.forEach { n ->
-            val c = point(n)
-            val piece = state.position.at(n)
-            if (n == last?.origin || n == last?.destination)
-                drawRect(
-                    selectedColor.copy(alpha = .6f),
-                    c - Offset(pieceRadius + 3.dp.toPx(), pieceRadius + 3.dp.toPx()),
-                    androidx.compose.ui.geometry.Size(
-                        (pieceRadius + 3.dp.toPx()) * 2,
-                        (pieceRadius + 3.dp.toPx()) * 2,
-                    ),
-                    style = Stroke(1.dp.toPx()),
+                Text(
+                    stringResource(when (outcome) {
+                        Outcome.TIGERS_WIN -> R.string.win_tigers
+                        Outcome.LAMBS_WIN -> R.string.win_lambs
+                        else -> R.string.draw
+                    }),
+                    style = MaterialTheme.typography.headlineMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.semantics { heading() },
                 )
-            if (last is Action.Capture && n == last.over) {
-                val r = 6.dp.toPx()
-                drawLine(lines, c - Offset(r, r), c + Offset(r, r), 2.dp.toPx())
-                drawLine(lines, c + Offset(-r, r), c + Offset(r, -r), 2.dp.toPx())
-            }
-            if (n in destinations) {
-                drawCircle(selectedColor.copy(alpha = .14f), (if (immersive) 8.dp else 14.dp).toPx(), c)
-                drawCircle(selectedColor, (if (immersive) 8.dp else 13.dp).toPx(), c, style = Stroke(1.5.dp.toPx()))
-            }
-            when (piece) {
-                Occupant.EMPTY -> drawCircle(lines, (if (immersive) 5.dp else 3.dp).toPx(), c)
-                Occupant.LAMB -> {
-                    drawCircle(Color(0xFFFFFDF3), pieceRadius, c)
-                    drawCircle(Color(0xFF354D3D), pieceRadius, c, style = Stroke(2.dp.toPx()))
-                    portrait(lambImage, c, pieceRadius * .88f)
-                }
-                Occupant.TIGER -> {
-                    val r = pieceRadius
-                    val path =
-                        Path().apply {
-                            moveTo(c.x, c.y - r)
-                            lineTo(c.x + r, c.y + r * .75f)
-                            lineTo(c.x - r, c.y + r * .75f)
-                            close()
-                        }
-                    drawPath(path, Color(0xFFE3A344))
-                    drawPath(path, Color(0xFF503512), style = Stroke(2.dp.toPx()))
-                    portrait(tigerImage, c + Offset(0f, r * .18f), r * .57f)
-                }
-            }
-            if (n == selected || n == hint?.destination)
-                drawCircle(selectedColor, 16.dp.toPx(), c, style = Stroke(3.dp.toPx()))
-            val paint =
-                android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                    color =
-                        if (lines == Color.Unspecified) android.graphics.Color.BLACK
-                        else
-                            android.graphics.Color.argb(
-                                255,
-                                (lines.red * 255).toInt(),
-                                (lines.green * 255).toInt(),
-                                (lines.blue * 255).toInt(),
-                            )
-                    textSize = 10.sp.toPx()
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isFakeBoldText = true
-                }
-            if (fontScale <= 1.3f)
-                drawContext.canvas.nativeCanvas.drawText(
-                    n.name,
-                    c.x,
-                    c.y + pieceRadius + 12.dp.toPx(),
-                    paint,
+                Text(
+                    stringResource(when (outcome) {
+                        Outcome.TIGERS_WIN -> R.string.reason_tigers
+                        Outcome.LAMBS_WIN -> R.string.reason_lambs
+                        Outcome.REPETITION_DRAW -> R.string.reason_repetition
+                        else -> R.string.reason_agreement
+                    }),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
-            if (actions.any { it is Action.Capture && it.from == selected && it.to == n }) {
-                val r = 6.dp.toPx()
-                drawLine(selectedColor, c - Offset(r, 0f), c + Offset(r, 0f), 2.dp.toPx())
-                drawLine(selectedColor, c - Offset(0f, r), c + Offset(0f, r), 2.dp.toPx())
+                Text(stringResource(if (match.human == Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
+                    style = MaterialTheme.typography.labelLarge)
+                Button(onClick = { vm.openSetup(); vm.requestStart() },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.play_again))
+                }
+                OutlinedButton(onClick = { vm.openSetup(switch = true); vm.requestStart() },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.switch_sides))
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.view_board)) }
+                    TextButton(onClick = vm::home) { Text(stringResource(R.string.home)) }
+                }
             }
         }
     }
@@ -972,12 +717,11 @@ internal fun PointPicker(
                         contentDescription = description
                     },
                 label = {
-                    Text(
-                        n.name +
-                            (if (capture) " +"
-                            else if (piece == Occupant.TIGER) " ▲"
-                            else if (piece == Occupant.LAMB) " ●" else "")
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(n.name + if (capture) " +" else "")
+                        if (piece != Occupant.EMPTY) AnimalIcon(
+                            if (piece == Occupant.LAMB) Side.LAMB else Side.TIGER, Modifier.size(20.dp))
+                    }
                 },
             )
         }
@@ -1079,6 +823,7 @@ private fun Tutorial(s: UiState, vm: GameViewModel) {
             null,
             vm::tap,
             Modifier.fillMaxWidth().aspectRatio(1.15f),
+            reducedMotion = s.preferences.reduced,
         )
         if (s.message != null)
             Text(
@@ -1099,12 +844,6 @@ private fun Tutorial(s: UiState, vm: GameViewModel) {
             Text(stringResource(R.string.lesson_list))
         }
     }
-}
-
-private fun boardPoint(width: Float, height: Float, margin: Float, node: Node, verticalMargin: Float = margin): Offset {
-    val scale = minOf((width - 2 * margin) / 10, (height - 2 * verticalMargin) / 8)
-    val p = Board.points.getValue(node)
-    return Offset(width / 2 + p.x * scale, height / 2 + (p.y - 4) * scale)
 }
 
 @Composable

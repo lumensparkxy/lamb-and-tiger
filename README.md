@@ -45,6 +45,8 @@ Verified private repository milestones: [M1 — Specification baseline](https://
 
 ## Technical direction
 
+D050 implements the approved Quiet Tabletop Solo design with animal-shaped pieces and placement, movement and capture animations. See [implementation and emulator evidence](docs/implementation/tabletop-evidence.md).
+
 Three modules: `app` owns Compose UI, coordination, codecs and SQLite persistence; `game` is pure Kotlin/JVM with deterministic rules and separate computer policies; `nearby` owns the Android Nearby Connections adapter under D047. No game rules or simulated connection success live in `nearby`.
 
 ## Development
