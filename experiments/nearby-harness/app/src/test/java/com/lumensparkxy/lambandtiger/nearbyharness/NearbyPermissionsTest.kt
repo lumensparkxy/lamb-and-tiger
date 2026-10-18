@@ -23,8 +23,8 @@ class NearbyPermissionsTest {
         }
     }
 
-    @Test fun android13Through16UseNearbyWifiWithoutLocation() {
-        for (api in 33..36) {
+    @Test fun android13Through17UseNearbyWifiWithoutLocation() {
+        for (api in 33..37) {
             assertEquals(setOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE,
                 NEARBY_WIFI_DEVICES), NearbyPermissions.runtimeFor(api).toSet())
         }

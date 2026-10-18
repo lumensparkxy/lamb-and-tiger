@@ -96,3 +96,16 @@ When a proposal is accepted, record the decision and rationale here. Introduce s
 **D044 — 2026-10-18:** The user selected the storybook woodland visual direction, approved a compact header and hidden controls, and explicitly requested implementation with less empty scenery and the largest board that fits. Apply this to the native Compose play screen: preserve the exact D017 board geometry and game rules, fit the board to available width/height without distortion, use compact role/turn/count information, and reveal controls by an upward swipe or an explicit accessible button. The panel can be hidden explicitly or with a downward swipe on its header. Keep the accessible point selector available in the panel; revealing controls does not itself pause play. Rules, Settings, interruptions and departure retain their existing pause semantics. Light Modern and dark Midnight Prowl remain the two themes. Generated art is decorative; the engine remains the source of all nodes, edges, legal actions and outcomes. This is UI implementation authorization, not a merge or release authorization.
 
 **D045 — 2026-10-18:** The user authorized combining Claude Design's strongest layout ideas with the existing woodland artwork. Keep controls hidden by default with an accessible header action and upward board swipe; remove the persistent footer. Fit the exact board without distortion, reduce the landscape status rail, and lay revealed controls below/beside the board rather than over it. On compact or large-text windows, share space between a smaller fully visible board and scrollable controls. Preserve departure, pause, result and game-rule semantics. No new fonts, artwork, modes or dependencies are required.
+
+
+## Resumed Nearby diagnostic experiment
+
+**D046 — 2026-10-18:** The user authorized implementing the isolated Nearby diagnostic harness and trying discovery, explicit matching-code confirmation and acknowledged sample exchange between the physical Pixel 9a and emulator. This resumes the bounded experiment deferred in D036/D041. Emulator/phone results are development evidence only; two-physical-phone acceptance remains for later. Production transport/gameplay integration, full protocol recovery, issue closure and publication are not included. Preserve the untracked root `gradle/gradle-daemon-jvm.properties`.
+
+## Production Nearby implementation
+
+**D047 — 2026-10-18:** After the bounded D046 phone/emulator experiment, the user explicitly requested Nearby implementation. This authorizes local production adapter, app coordination/persistence/UI and focused verification under the D041 protocol, ahead of two-phone acceptance. Preserve the harness changes and untracked Gradle file. Two-phone acceptance, issue closure, commit/push/merge and release remain separate boundaries.
+
+## Nearby review and PR delivery
+
+**D048 — 2026-10-18:** The user authorized reviewing the Nearby changes, committing and pushing on a dedicated branch, and opening a PR with test evidence and emulator limitations. Preserve the untracked root `gradle/gradle-daemon-jvm.properties`. Stop before merge; two-phone acceptance, issue closure and release remain separate boundaries.

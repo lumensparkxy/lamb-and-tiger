@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Nearby Harness</string>
-    <string name="scope_notice">Local diagnostics only. Hosting, joining, and message exchange are not implemented.</string>
+    <string name="scope_notice">Connection experiment only. No game rules, saved matches, or two-phone acceptance.</string>
     <string name="device_details">Model: %1$s\nAndroid %2$s / API %3$d</string>
     <string name="services_heading">Google Play services</string>
     <string name="services_details">%1$s\nStatus: %2$s\nPlay services version: %3$s\nPlay Store version: %4$s</string>
-    <string name="services_available">Availability check passed. Nearby connectivity has not been tested.</string>
+    <string name="services_available">Availability check passed. This check alone does not prove connectivity.</string>
     <string name="services_unavailable">Availability check did not pass. Review the status below.</string>
     <string name="capabilities_heading">Reported device features</string>
     <string name="capabilities_details">Bluetooth: %1$s\nBluetooth LE: %2$s\nWi-Fi: %3$s</string>
@@ -16,7 +16,7 @@
     <string name="permission_status">%1$s: %2$s</string>
     <string name="permission_granted">Granted</string>
     <string name="permission_not_granted">Not granted</string>
-    <string name="permissions_notice">This screen does not request permissions, start discovery, or connect to another device.</string>
+    <string name="permissions_notice">Host or Join requests missing permissions. Refresh only reads status.</string>
     <string name="version_unknown">Unknown</string>
     <string name="package_not_found">Not installed or not visible</string>
     <string name="refresh">Refresh diagnostics</string>

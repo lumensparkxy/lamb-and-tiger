@@ -11,8 +11,12 @@ import android.view.WindowInsets
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
-/** Local diagnostics only. No connection client, permission requests, or game state. */
+/** Isolated diagnostic experiment; no production game state. */
 class MainActivity : Activity() {
+    private lateinit var link: LinkHarness
+    private var pendingHost: Boolean? = null
+    private var foreground = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -36,7 +40,45 @@ class MainActivity : Activity() {
             insets
         }
         content.requestApplyInsets()
+        link = LinkHarness(this, content) { host ->
+            link.stop("Checking permissions")
+            val missing = NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT)
+                .filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+            if (missing.isEmpty()) begin(host)
+            else {
+                pendingHost = host
+                requestPermissions(NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT).toTypedArray(), 41)
+            }
+        }
         findViewById<Button>(R.id.refresh).setOnClickListener { refreshDiagnostics() }
+    }
+
+    override fun onStart() { super.onStart(); foreground = true }
+    override fun onStop() {
+        foreground = false
+        if (::link.isInitialized) link.pause()
+        super.onStop()
+    }
+    override fun onDestroy() {
+        if (::link.isInitialized) link.stop("Activity closed")
+        super.onDestroy()
+    }
+    private fun begin(host: Boolean) {
+        if (!foreground) { link.blocked("Return and choose Host or Join again"); return }
+        if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) != ConnectionResult.SUCCESS) {
+            link.blocked("Google Play services unavailable. Repair it and retry."); return
+        }
+        runCatching { link.start(host) }.onFailure { link.blocked("Unable to start: ${it.javaClass.simpleName}") }
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != 41) return
+        val host = pendingHost ?: return
+        pendingHost = null
+        refreshDiagnostics()
+        if (NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT).all {
+                checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) begin(host)
+        else link.blocked("Permissions denied or cancelled. Choose Host/Join to retry; use app Settings if blocked permanently.")
     }
 
     override fun onResume() {

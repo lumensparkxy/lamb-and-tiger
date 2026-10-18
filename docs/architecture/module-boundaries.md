@@ -41,4 +41,4 @@ The harness's build versions and launch timings are experiment evidence only. Do
 
 ## Next bounded step
 
-The module/UI choice is recorded in D037. The [immutable game-state and action contract](game-state-and-actions.md) is approved in D038. D041 completes that prerequisite review and authorizes continuous Solo-first implementation. The three production modules exist; `nearby` is an inert boundary, with live protocol integration and testing deferred.
+The module/UI choice is recorded in D037. The [immutable game-state and action contract](game-state-and-actions.md) is approved in D038. D041 completes that prerequisite review and authorizes continuous Solo-first implementation. The three production modules exist; D047 now authorizes the production `nearby` adapter and app-owned protocol integration. See [Nearby evidence](../implementation/nearby-evidence.md); physical acceptance remains open.

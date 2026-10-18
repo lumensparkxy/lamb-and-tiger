@@ -1,8 +1,8 @@
 # Nearby diagnostic scaffold
 
-An isolated issue #3 experiment, not the production game. The current APK contains a scrollable local diagnostic screen and Refresh control. It reports Android/device details, Google Play services availability and package versions, reported Bluetooth/Wi-Fi features, and permission status for the current API level.
+An isolated issue #3 experiment, not the production game. The current source adds Host/Join, selectable discovered peers, explicit SDK matching-code confirmation on both devices, byte samples with unique IDs and peer ACKs, and Stop/Disconnect. It retains the scrollable local diagnostic screen and Refresh control. It reports Android/device details, Google Play services availability and package versions, reported Bluetooth/Wi-Fi features, and permission status for the current API level.
 
-It does not request permissions, start discovery, connect, send messages, save matches, or implement game rules. Diagnostic text is English-only; production English/Tamil acceptance is not claimed.
+Host/Join requests missing permissions. Discovery/confirmation has a 60-second observation window; unacknowledged samples remain uncertain after 10 seconds and are never automatically replayed. Backgrounding or locking disconnects; reconnect explicitly and compare new codes on both devices. The harness does not save matches or implement game rules. Diagnostic text is English-only; production English/Tamil acceptance is not claimed.
 
 ## Build prerequisites and commands
 
@@ -16,7 +16,7 @@ From the repository root, with those environment variables set, the verified com
 
 Reuse this command if CI is introduced later. There is no CI workflow yet.
 
-The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk` within this harness. All build output is ignored. The wrapper uses Gradle 9.6.0 with the official distribution checksum; the generated wrapper JAR was also checked against Gradle's published checksum.
+Build outputs are under the local Gradle user directory, outside cloud-synced Documents. Run `./experiments/nearby-harness/gradlew -p experiments/nearby-harness printBuildLocations` to locate them; the app APK is at `outputs/apk/debug/app-debug.apk` beneath the reported app directory. Historical in-workspace build outputs remain ignored and preserved. The wrapper uses Gradle 9.6.0 with the official distribution checksum; the generated wrapper JAR was also checked against Gradle's published checksum.
 
 ## Verified build result — 2026-10-17
 
@@ -29,7 +29,7 @@ The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk` within
 
 The initial build failed because Nearby 19.5.1 contains Kotlin 2.4 metadata while AGP defaults to KGP 2.2.10. The root build file now uses Android's [documented KGP classpath override](https://developer.android.com/build/releases/agp-9-0-0-release-notes#upgrade-to-a-higher-kgp-version) to pin 2.4.20 while retaining built-in Kotlin. A status-reporting API call was also corrected before the successful build. The [Kotlin compatibility table](https://kotlinlang.org/docs/gradle-configure-project.html) lists full AGP support through 9.3.1 for KGP 2.4.20; this newer AGP combination has local build/test evidence, not a broader compatibility guarantee.
 
-## Dependency and manifest inspection
+## Historical dependency and manifest inspection — 2026-10-17
 
 Direct runtime dependencies are Nearby 19.5.1 and Play services base 18.5.0; JUnit 4.13.2 is test-only. Gradle resolved Kotlin stdlib 2.4.20, Play services basement 18.9.0/tasks 18.2.0, coroutines 1.10.2, and AndroidX transitively. ARCore appears as an optional entry in Nearby's POM but is absent from this resolved debug runtime graph. Dependency resolution completed without a minimum-SDK conflict; device compatibility remains untested.
 
@@ -39,12 +39,14 @@ See [permission resolution](PERMISSIONS.md) for the API 32/33 correction and lat
 
 ## Local evidence
 
-The build/test/lint reports remain under ignored `app/build/`; initial and corrected build logs and the dependency report remain under the repository's ignored `work/` directory. This sanitised summary records the meaningful results without committing device logs, machine paths, signing material, or build outputs. This scaffold is not committed; identify its source revision/patch and regenerate the APK hash before a later experiment run.
+Historical build/test/lint reports remain under ignored `app/build/`; current reports use the Gradle-user-directory path above. initial and corrected build logs and the dependency report remain under the repository's ignored `work/` directory. This sanitised summary records the meaningful results without committing device logs, machine paths, signing material, or build outputs. The original scaffold was subsequently merged in PR #15. Identify the current source revision/patch and regenerate the APK hash for each experiment run.
 
 ## Emulator smoke check — 2026-10-17
 
 The existing APK was installed and inspected on Pixel9a. The diagnostic screen and Refresh passed the scoped functional checks; a temporary ADB permission grant proved Refresh updates status, and the grant was revoked afterward. Play services reports SUCCESS. No app crash, ANR, or security exception was found in the captured logs. Launches took 12.193 s and 4.885 s with rendering/skipped-frame messages, so startup performance remains unresolved. See the [smoke-check record](SMOKE-TEST.md) for exact scope, artifact identity, and evidence. No connectivity was tested.
 
-## Next step
+## Current scope — D046
 
-The user deferred further Nearby investigation under D036. Preserve the launch-delay finding and test evidence for a later explicit return to issue #3. Issue #4's [module/UI architecture](../../docs/architecture/module-boundaries.md) is approved in D037; its state/action contract is approved in D038. D039 now batches the remaining architecture prerequisites for one final review; the physical-phone experiment remains deferred. Do not automatically resume testing on NEXT.
+The user resumed the isolated experiment on 2026-10-18 and authorized a Pixel 9a plus emulator attempt. Two-physical-phone acceptance remains deferred. Production `nearby` integration, saved-game protocol behavior and issue closure are outside this task. See [current attempt evidence](LINK-TEST.md).
+
+After a successful discovery, select the discovered host, compare the SDK code on both screens, and press **Codes match — Accept** on each device. **Send sample** stays disabled until both accept. Send in both directions and distinguish `SDK accepted send`, `RECEIVED`, and `ACK received`. Reject, Stop, timeout, background or disconnect disables sending. A new session has fresh sample bookkeeping; there is no persistence or uncertain-message replay.

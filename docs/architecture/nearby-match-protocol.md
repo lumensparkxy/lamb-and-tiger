@@ -1,6 +1,6 @@
 # Approved Nearby match protocol contract
 
-Status: approved by the user in D041, 2026-10-17. This is a transport-independent design, not adoption of Google Nearby Connections, a proven distributed protocol, or permission to resume the deferred experiment. D036 and the two-physical-phone gate still apply. [D038](game-state-and-actions.md) owns legality; [storage](saved-state-and-restoration.md) owns durable evidence.
+Status: approved by the user in D041, 2026-10-17. This is a transport-independent design, not adoption of Google Nearby Connections, a proven distributed protocol, or permission to resume the deferred experiment. D047 now authorizes local production implementation; the two-physical-phone gate still applies. See [implementation evidence and limits](../implementation/nearby-evidence.md). [D038](game-state-and-actions.md) owns legality; [storage](saved-state-and-restoration.md) owns durable evidence.
 
 ## Authority and identity
 
