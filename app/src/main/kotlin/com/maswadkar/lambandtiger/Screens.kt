@@ -624,7 +624,8 @@ private fun TabletopTurn(s: UiState,vm: GameViewModel,modifier: Modifier=Modifie
                 R.string.place_compact else R.string.move_compact))
         else -> stringResource(title)
     }
-    val spoken=listOfNotNull(prompt,
+    // The visual hint relies on the board ring/arrow; speak the hinted points instead.
+    val spoken=listOfNotNull(s.hint?.takeIf { vm.playable(s) }?.let { actionLabel(it) } ?: prompt,
         stringResource(if(state.position.phase==Phase.PLACEMENT) R.string.phase_placement else R.string.phase_movement),
         stringResource(R.string.reserve_count,state.position.reserve),
         stringResource(R.string.captured_count,state.position.captured),s.lastAction?.let { stringResource(R.string.last_move,moveLabel(it)) }).joinToString(". ")

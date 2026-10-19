@@ -19,6 +19,8 @@ internal data class FriendUi(
     val localSide: Side? = null, val peerSide: Side? = null, val ready: Boolean = false, val peerReady: Boolean = false,
     val playable: Boolean = false, val busy: Boolean = false, val paused: Boolean = true, val selected: Node? = null,
     val leaving: Boolean = false, val offer: Boolean = false, val offerer: Boolean = false, val error: Boolean = false,
+    /** Last settled match; the session withholds [match] while a transaction is unsettled. */
+    val confirmedMatch: FriendMatch? = null,
 )
 internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transport.Listener {
     private val store=FriendStore(app)
@@ -69,8 +71,9 @@ internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transp
     private fun publish() {
         val s=session ?: return
         val old=_ui.value
-        _ui.value=old.copy(phase=if(s.authenticated && s.synced) "session" else old.phase,
-            match=s.match, player=s.player,localSide=s.localSide,peerSide=s.peerSide,ready=s.localReady,peerReady=s.peerReady,
+        val phase=if(s.authenticated && s.synced) "session" else old.phase
+        _ui.value=old.copy(phase=phase,
+            match=s.match,confirmedMatch=if(s.match!=null || (phase=="session" && !s.busy)) s.match else old.confirmedMatch, player=s.player,localSide=s.localSide,peerSide=s.peerSide,ready=s.localReady,peerReady=s.peerReady,
             playable=s.playable && foreground && activeScreen,busy=s.busy,paused=s.paused,offer=s.offer!=null,offerer=s.offerer==s.player,
             saved=old.saved || s.record?.started==true, savedHost=s.record?.match?.host==s.player)
     }
@@ -83,7 +86,7 @@ internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transp
         transport.stop(); channel=null; linkUp=false; generation++
         val ticket=generation
         requestedHost=host; continuing=resume
-        _ui.value=_ui.value.copy(phase=if(host) "hosting" else "joining",peers=emptyMap(),code="",error=false,match=null,selected=null)
+        _ui.value=_ui.value.copy(phase=if(host) "hosting" else "joining",peers=emptyMap(),code="",error=false,match=null,confirmedMatch=null,selected=null)
         enqueue {
             val saved=store.load()
             check(resume || saved?.tx == null || saved.tx.stage==Stage.ACKED) { "Unresolved save must be recovered" }

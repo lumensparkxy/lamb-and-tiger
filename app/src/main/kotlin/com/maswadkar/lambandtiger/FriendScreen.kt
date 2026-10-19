@@ -155,18 +155,14 @@ private fun connectionMessage(phase: String) = when (phase) {
 internal fun FriendContent(snapshot: FriendUi, preferences: Preferences, label: String, actions: FriendActions) {
     // The coordinator withholds its match during an unsettled transaction. Keep displaying
     // the last confirmed position while busy, never an unconfirmed candidate or a setup screen.
-    var lastConfirmed by remember { mutableStateOf(snapshot.match) }
-    SideEffect {
-        if (snapshot.match != null || (snapshot.phase == "session" && !snapshot.busy)) lastConfirmed = snapshot.match
-    }
     val s = if (snapshot.match == null &&
         ((snapshot.busy && snapshot.phase == "session") || snapshot.phase in retryPhases))
-        snapshot.copy(match = lastConfirmed) else snapshot
+        snapshot.copy(match = snapshot.confirmedMatch) else snapshot
     var menu by remember { mutableStateOf(false) }
     var replaceHost by remember { mutableStateOf<Boolean?>(null) }
     var draw by remember { mutableStateOf(false) }
     var points by remember { mutableStateOf(false) }
-    var pairing by remember { mutableStateOf(false) }
+    var pairing by rememberSaveable { mutableStateOf(false) }
     var moving by remember(s.match?.id) { mutableStateOf(false) }
     var resultDismissed by rememberSaveable(s.match?.id) { mutableStateOf(false) }
     var errorDismissed by remember(s.phase, s.error) { mutableStateOf(false) }
@@ -185,7 +181,7 @@ internal fun FriendContent(snapshot: FriendUi, preferences: Preferences, label: 
         s.phase == "session" && !finished && match.state.sideToMove == match.side(s.player) && !moving
     LaunchedEffect(canAct) { if (!canAct) draw = false }
     LaunchedEffect(match?.id, finished) { if (match == null || finished) points = false }
-    fun start(host: Boolean, resume: Boolean) { pairing = true; lastConfirmed = null; actions.start(host, resume) }
+    fun start(host: Boolean, resume: Boolean) { pairing = true; actions.start(host, resume) }
     fun disconnect() { pairing = true; actions.stop() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 4.dp),
@@ -244,7 +240,7 @@ internal fun FriendContent(snapshot: FriendUi, preferences: Preferences, label: 
                 val controls: @Composable (Modifier) -> Unit = { modifier ->
                     FriendMatchControls(s, finished, modifier,
                         onResult = { resultDismissed = false }, onOffer = { offerDismissed = false },
-                        onContinue = { start(s.savedHost, true) }, actions = actions)
+                        onContinue = { start(s.savedHost, true) }, onStop = ::disconnect, actions = actions)
                 }
                 if (maxWidth > maxHeight) Row(Modifier.fillMaxSize()) {
                     board(Modifier.weight(1f).fillMaxHeight())
@@ -277,7 +273,8 @@ internal fun FriendContent(snapshot: FriendUi, preferences: Preferences, label: 
         text = { Text(stringResource(connectionMessage(s.phase)), Modifier.verticalScroll(rememberScrollState())) },
         confirmButton = { TextButton(onClick = { errorDismissed = true }) { Text(stringResource(android.R.string.ok)) } })
     else if (finished && resultReady && !resultDismissed) {
-        FriendResult(s, actions, onDismiss = { resultDismissed = true }, onContinue = { start(s.savedHost, true) })
+        FriendResult(s, actions, onDismiss = { resultDismissed = true }, onContinue = { start(s.savedHost, true) },
+            onStop = ::disconnect)
     } else if (s.offer && !offerDismissed) AlertDialog(onDismissRequest = { offerDismissed = true },
         modifier = Modifier.testTag("friend-offer-dialog"),
         text = { Text(stringResource(R.string.friend_draw_pending)) },
@@ -461,10 +458,11 @@ private fun FriendTurn(s: FriendUi, modifier: Modifier = Modifier) {
 
 @Composable
 private fun FriendMatchControls(s: FriendUi, finished: Boolean, modifier: Modifier = Modifier,
-    onResult: () -> Unit, onOffer: () -> Unit, onContinue: () -> Unit, actions: FriendActions) {
+    onResult: () -> Unit, onOffer: () -> Unit, onContinue: () -> Unit, onStop: () -> Unit, actions: FriendActions) {
+    // Resume only a match that is actually saved; otherwise return to Host/Join.
     val label = when {
         finished -> R.string.view_result
-        s.phase != "session" -> R.string.friend_continue
+        s.phase != "session" -> if (s.saved) R.string.friend_continue else R.string.friend_disconnect
         s.offer -> R.string.friend_review_draw
         s.paused -> if (s.ready) R.string.friend_cancel_ready else R.string.resume
         else -> R.string.friend_pause
@@ -472,7 +470,7 @@ private fun FriendMatchControls(s: FriendUi, finished: Boolean, modifier: Modifi
     OutlinedButton(onClick = {
         when {
             finished -> onResult()
-            s.phase != "session" -> onContinue()
+            s.phase != "session" -> if (s.saved) onContinue() else onStop()
             s.offer -> onOffer()
             s.paused -> actions.ready()
             else -> actions.pause()
@@ -484,7 +482,8 @@ private fun FriendMatchControls(s: FriendUi, finished: Boolean, modifier: Modifi
 }
 
 @Composable
-private fun FriendResult(s: FriendUi, actions: FriendActions, onDismiss: () -> Unit, onContinue: () -> Unit) {
+private fun FriendResult(s: FriendUi, actions: FriendActions, onDismiss: () -> Unit, onContinue: () -> Unit,
+    onStop: () -> Unit) {
     val match = s.match ?: return
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(28.dp), tonalElevation = 6.dp) {
@@ -506,8 +505,9 @@ private fun FriendResult(s: FriendUi, actions: FriendActions, onDismiss: () -> U
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.switch_sides)) }
                 } else {
                     Text(stringResource(R.string.friend_disconnected))
-                    Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text(stringResource(R.string.friend_continue))
+                    Button(onClick = if (s.saved) onContinue else onStop,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text(stringResource(if (s.saved) R.string.friend_continue else R.string.friend_disconnect))
                     }
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

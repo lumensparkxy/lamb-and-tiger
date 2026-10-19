@@ -1,5 +1,9 @@
 # Current Google Play submission status — 2026-10-19
 
+Latest assessment: [delivery and Play readiness](readiness-20261019-delivery.md)
+records the current source fingerprint, fresh 57-test JVM and 8-test emulator
+results, release build/lint, unsigned bundle hash and live Console setup gaps.
+
 The user-created [Lamb and Tiger app record](https://play.google.com/console/u/0/developers/6594351209748992514/app/4972975891791973201/app-dashboard) was verified on the dashboard. Initial setup tasks are incomplete. No upload, track release, review submission or rollout was performed in this pass.
 
 D064 implements CDM device selection with secure Bluetooth transport. D065 removes the age-group screen at the owner’s explicit request; all-user restricted ad settings remain. **Mixed-audience age screening is an open Play submission blocker again.** See [age-screen removal verification](age-screen-removal.md) for the current debug candidate and [Families fix verification](families-fix-evidence.md) for earlier transport and signed-build evidence. Existing signed bundles predate D065 and must not be uploaded as the current release.
