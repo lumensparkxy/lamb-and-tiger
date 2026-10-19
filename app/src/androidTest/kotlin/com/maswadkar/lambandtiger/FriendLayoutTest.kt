@@ -49,10 +49,10 @@ class FriendLayoutTest {
 
     private fun session(game: GameState = (GameEngine.fixture(Position(
         Node.A.bit or Node.D.bit or Node.E.bit, Node.H.bit or Node.J.bit or Node.R.bit,
-        Side.LAMB, 12, 0)) as Transition.Applied).state) = FriendUi(
-        phase = "session", match = FriendMatch("layout", "local", "peer", Side.LAMB, game),
-        player = "local", playable = true, paused = false, saved = true, savedHost = true,
-    )
+        Side.LAMB, 12, 0)) as Transition.Applied).state) = FriendMatch("layout", "local", "peer", Side.LAMB, game).let { match ->
+        FriendUi(phase = "session", match = match, confirmedMatch = match,
+        player = "local", playable = true, paused = false, saved = true, savedHost = true)
+    }
 
     private fun clickText(id: Int) {
         val node = rule.onNodeWithText(rule.activity.getString(id))
@@ -164,6 +164,19 @@ class FriendLayoutTest {
         screenshot("disconnected")
         clickTag("friend-match-action")
         assertEquals(listOf(true to true), starts)
+    }
+
+    @Test fun disconnectedWithoutSaveReturnsToHostOrJoin() {
+        val starts = mutableListOf<Pair<Boolean, Boolean>>()
+        var stops = 0
+        // Without a save there is nothing to resume: return to Host/Join instead.
+        show(session().copy(match = null, phase = "disconnected", paused = true, playable = false, saved = false),
+            FriendActions(start = { h, r -> starts += h to r }, stop = { stops++ }))
+        rule.onNodeWithTag("friend-board").assertExists()
+        clickText(R.string.friend_disconnect)
+        assertEquals(emptyList<Pair<Boolean, Boolean>>(), starts)
+        assertEquals(1, stops)
+        rule.onNodeWithTag("friend-host").assertExists()
     }
 
     @Test fun drawOfferRequiresConfirmationAndRemainsReviewable() {
