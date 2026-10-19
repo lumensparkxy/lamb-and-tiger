@@ -24,6 +24,8 @@ keystore.properties
 # Local scratch work and test evidence
 work/
 artifacts/local/
+/output/
+/.playwright-mcp/
 
 # Keep .codex/config.toml versioned. Never store credentials here.
 .codex/auth.json

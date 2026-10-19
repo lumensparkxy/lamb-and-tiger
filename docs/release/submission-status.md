@@ -1,30 +1,28 @@
 # Current Google Play submission status — 2026-10-19
 
-Latest assessment: [delivery and Play readiness](readiness-20261019-delivery.md)
-records the current source fingerprint, fresh 57-test JVM and 8-test emulator
-results, release build/lint, unsigned bundle hash and live Console setup gaps.
+**Closed Alpha submitted at approximately 18:18 UTC.** At that observation, Console showed **Changes in review** for **0.1-solo (1) — Closed Alpha**, with quick checks still running before review could proceed. This record does not establish the current live review status. This is not approval or download availability. See the [signed candidate and submission receipt](alpha-submission-20261019.md).
 
-The user-created [Lamb and Tiger app record](https://play.google.com/console/u/0/developers/6594351209748992514/app/4972975891791973201/app-dashboard) was verified on the dashboard. Initial setup tasks are incomplete. No upload, track release, review submission or rollout was performed in this pass.
+The submitted Alpha source `674411874bfec2b2e494735e15b61b28e4253482` was rebuilt with live-ad configuration and verified upload signing. AAB SHA-256: `9d127336e1b8deab1fb4976225bc9e8eda3308591d028bcadead05ac70fd23ff`. Doctor, build, 57 JVM tests, lint (0 errors / 33 warnings), bundle/APK signature checks, bundletool validation, APK ZIP/ELF alignment and a signed-release emulator smoke check passed. Earlier revision-matched evidence records 8 emulator tests.
 
-D064 implements CDM device selection with secure Bluetooth transport. D065 removes the age-group screen at the owner’s explicit request; all-user restricted ad settings remain. **Mixed-audience age screening is an open Play submission blocker again.** See [age-screen removal verification](age-screen-removal.md) for the current debug candidate and [Families fix verification](families-fix-evidence.md) for earlier transport and signed-build evidence. Existing signed bundles predate D065 and must not be uploaded as the current release.
+The later UI fixes merged in [PR #28](https://github.com/lumensparkxy/lamb-and-tiger/pull/28), merge commit `40cae01b82a0d4712bb5bc5949f829938f11e66d`, are not included in this version 1 AAB. They improve Start Game visibility, board-piece sizing and the landscape board layout. Delivering them through Play requires a new release candidate and submission.
+
+All initial Console setup, all six audience bands, owner-authorized child-law certification, Data safety and English listing are included. Closed Alpha uses the owner-supplied two-account list and all 177 named countries/regions plus Rest of World. PC is opted out per owner instruction. Advertising ID use is declared No, consistent with the verified configuration. Managed publishing is off; no production release was submitted.
 
 Remaining steps:
 
-1. Resolve mixed-audience age screening before Play submission. The current app has no age screen by D065; all-user child treatment alone is not a documented exemption from the current Families requirement. Do not change the audience or remove ads without an explicit product decision.
+1. Await automated checks and Google review, then verify tester opt-in access, download, installed version and Play signing identity.
+2. Complete independent upload-key/password backup and recovery verification. The owner explicitly deferred this until after the Alpha submission (D068).
+3. Perform final two-physical-phone Bluetooth testing from Play downloads as planned by the owner: host/join, code rejection/confirmation, moves, saved-peer reconnect, interruptions and rematch. This remains planned, not observed.
+4. Retain representative ad-dismissal qualification and fluent Tamil review. Test creatives do not certify every served creative.
+5. Complete AdMob store association/readiness and developer-site/app-ads.txt checks. The privacy message is published; all ages retain restricted advertising settings.
 
-2. Verify host/join, matching-code rejection, mutual confirmation, saved-opponent reconnect, interruption and rematch on two physical phones. Android CDM availability, system pairing and actual radio behavior cannot be certified by emulator or JVM tests. Both phones need the new transport version.
-3. AdMob high-engagement ads were disabled and the persisted Off state verified for Lamb and Tiger. Google documents up-to-five-second interstitial skip time with this setting off. Retain representative ad-dismissal qualification; a test creative does not certify every served creative. Complete fluent Tamil review, including the new pairing strings.
-4. Complete Play listing, audience/IARC, app access, Data safety and approved all-supported-country setup. Price is owner-approved free with ads. Review account-specific production/testing access on the live Console; app creation alone does not grant production access.
-5. Complete key vault backup/recovery, Play App Signing enrollment, final signed binary/version checks and representative installed/Play-delivered verification. The dedicated key exists outside Git; owner backup remains open.
-6. Complete AdMob store association, readiness and developer-site/app-ads.txt checks. The privacy message is already published; all ages retain the restricted ad configuration.
-
-The local policy and Data safety worksheet now describe CDM/Bluetooth and the removal of age collection. Final Console declarations remain unsubmitted. No claim of whole-app Families compliance or production readiness is made.
+The live Console offers whole-app compliance or a neutral age screen; the earlier absolute age-screen-blocker assessment was corrected in D067. Owner certification and submitted declarations are not Google approval.
 
 ## Earlier signing/setup evidence (before D064)
 
-- Created a dedicated RSA-4096 upload key outside Git; configured opt-in environment-based signing and certificate checking. See [signing and backup handoff](signing.md). No existing app key was reused; Play has not registered this key yet.
+- Created a dedicated RSA-4096 upload key outside Git; configured opt-in environment-based signing and certificate checking. See [signing and backup handoff](signing.md). No existing app key was reused; Play had not registered this key at that earlier stage.
 - Built a signed ad-enabled AAB from isolated `4e933cd` plus only the signing/helper changes, preserving unrelated local Nearby/accessibility edits. Source fingerprint: `ee9141c12404dc45103f257ea7aeb74b81b1906f874b117b7c2cae561cd448f3`.
-- Signed AAB SHA-256: `e68a4af91b622eb63946b2f6425cb4231af89d0d4c9be0afa555b10973215faa`. Version remains code 1 / `0.1-solo`; no Play library record exists to confirm final release-version availability.
+- Signed AAB SHA-256: `e68a4af91b622eb63946b2f6425cb4231af89d0d4c9be0afa555b10973215faa`. That candidate used version code 1 / `0.1-solo`; no Play library record existed at that stage to confirm release-version availability.
 - Doctor, debug/release builds, **54 JVM tests**, release lint **0 errors / 40 warnings**, AAB signature and expected upload-certificate verification passed.
 - Google bundletool **1.18.3** `validate` and signed universal-APK generation passed. Download SHA-256 matched the official GitHub release asset digest. APK signature verification and `zipalign -c -P 16 -v 4` passed. This is APK ZIP alignment, not a 16-KB-page runtime or Play-delivered build test. No live-ad APK was installed or requested for QA.
 - `https://maswadkar.com/app-ads.txt` returned `google.com, pub-6317522941728465, DIRECT, f08c47fec0942fa0`, matching the owned AdMob app publisher. No website change is needed for this entry. Store developer-website association and AdMob crawler verification remain pending.

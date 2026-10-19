@@ -1,5 +1,7 @@
 # Delivery and Play readiness — 19 October 2026
 
+**Later setup update:** [Console setup evidence](console-setup-20261019.md) supersedes the Console gaps and categorical age-screen assessment below. All initial setup tasks are saved, including owner-certified all-age targeting, Data safety and the listing. The subsequent [closed Alpha submission receipt](alpha-submission-20261019.md) records the version 1 upload and review submission. The owner plans physical verification from Play downloads. The engineering evidence and assessment scope below describe the earlier stage and are unchanged.
+
 **Local engineering checks pass; Google Play production submission is not ready.**
 The owner authorized commit, push, PR, merge and branch cleanup, followed by a
 readiness assessment. No Play upload, declaration submission or rollout is part
