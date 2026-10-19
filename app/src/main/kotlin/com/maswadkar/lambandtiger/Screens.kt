@@ -366,10 +366,28 @@ private val difficultyLevels = listOf(
 
 @Composable
 private fun Setup(s: UiState, vm: GameViewModel) {
+    Column(Modifier.fillMaxSize()) {
+        // Keep the primary action reachable even when choices need to scroll.
+        SetupChoices(s, vm, Modifier.weight(1f))
+        Surface(shadowElevation = 3.dp) {
+            Button(
+                onClick = vm::requestStart, enabled = !s.busy,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 10.dp)
+                    .heightIn(min = 52.dp).testTag("setup-start"),
+            ) {
+                Text(stringResource(R.string.start_game), fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SetupChoices(s: UiState, vm: GameViewModel, modifier: Modifier) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Title(R.string.solo_setup)
         Text(stringResource(R.string.choose_side), style = MaterialTheme.typography.titleMedium)
@@ -410,7 +428,7 @@ private fun Setup(s: UiState, vm: GameViewModel) {
         }
         Text(stringResource(R.string.lambs_first), style = MaterialTheme.typography.bodyMedium)
         Text(stringResource(R.string.difficulty), style = MaterialTheme.typography.titleMedium)
-        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Difficulty.entries.forEachIndexed { i, d ->
                 val selected = s.setupDifficulty == d
                 Surface(
@@ -426,7 +444,7 @@ private fun Setup(s: UiState, vm: GameViewModel) {
                         else MaterialTheme.colorScheme.outlineVariant),
                 ) {
                     Row(
-                        Modifier.heightIn(min = 80.dp).padding(horizontal = 12.dp, vertical = 8.dp),
+                        Modifier.heightIn(min = 76.dp).padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
@@ -456,12 +474,6 @@ private fun Setup(s: UiState, vm: GameViewModel) {
                     }
                 }
             }
-        }
-        Button(
-            onClick = vm::requestStart, enabled = !s.busy,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-        ) {
-            Text(stringResource(R.string.start_game), fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -501,14 +513,15 @@ internal fun GameScreen(s: UiState, vm: GameViewModel) {
     var menu by remember { mutableStateOf(false) }
     var moving by remember(match.id) { mutableStateOf(false) }
     val scroll = rememberScrollState()
-    Column(Modifier.fillMaxSize()) {
+    val navigation: @Composable (Boolean) -> Unit = { showTitle ->
         Row(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=4.dp), verticalAlignment=Alignment.CenterVertically) {
             TextButton(onClick=vm::back) {
                 Icon(painterResource(R.drawable.ic_back), null, Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.back))
             }
-            Text(stringResource(R.string.play_title),Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+            if (showTitle) Text(stringResource(R.string.play_title),Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+            else Spacer(Modifier.weight(1f))
             Box {
                 TextButton(onClick={ menu=true },modifier=Modifier.testTag("game-menu")) { Text(stringResource(R.string.game_menu)) }
                 DropdownMenu(expanded=menu,onDismissRequest={ menu=false }) {
@@ -520,39 +533,45 @@ internal fun GameScreen(s: UiState, vm: GameViewModel) {
                 }
             }
         }
-        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val landscape=maxWidth>maxHeight
-            val railWidth=if(maxWidth>=840.dp) 300.dp else 244.dp
-            val scrolling=maxHeight<680.dp || LocalDensity.current.fontScale>1.3f
-            val playable=vm.playable(s) && !moving
-            val board: @Composable (Modifier) -> Unit = { modifier ->
-                key(match.id) {
-                    BoardView(match.state,s.selected,if(playable) GameEngine.available(match.state) else emptyList(),
-                        s.hint,vm::tap,modifier.testTag("play-board"),last=s.lastAction,immersive=true,
-                        reducedMotion=s.preferences.reduced,motionEnabled=!s.paused,onMotionRunning={ moving=it },
-                        showPointLabels=false)
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val landscape = maxWidth > maxHeight
+        Column(Modifier.fillMaxSize()) {
+            if (!landscape) navigation(true)
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val railWidth=if(maxWidth>=840.dp) 300.dp else 244.dp
+                val scrolling=maxHeight<680.dp || LocalDensity.current.fontScale>1.3f
+                val playable=vm.playable(s) && !moving
+                val board: @Composable (Modifier) -> Unit = { modifier ->
+                    key(match.id) {
+                        BoardView(match.state,s.selected,if(playable) GameEngine.available(match.state) else emptyList(),
+                            s.hint,vm::tap,modifier.testTag("play-board"),last=s.lastAction,immersive=true,
+                            reducedMotion=s.preferences.reduced,motionEnabled=!s.paused,onMotionRunning={ moving=it },
+                            showPointLabels=false)
+                    }
                 }
-            }
-            if (landscape) Row(Modifier.fillMaxSize()) {
-                board(Modifier.weight(1f).fillMaxHeight())
-                Column(Modifier.width(railWidth).fillMaxHeight()
-                    .verticalScroll(scroll).padding(horizontal=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
-                    MatchIdentity(s)
-                    TabletopTurn(s,vm)
-                    TabletopCounts(match.state)
-                    TabletopActions(s,vm,playable,onShowResult={ resultDismissed=false })
-                }
-            } else {
-                val boardHeight=(maxWidth-36.dp)*.8f+60.dp
-                Column(Modifier.fillMaxSize().then(if(scrolling) Modifier.verticalScroll(scroll) else Modifier),
-                    horizontalAlignment=Alignment.CenterHorizontally) {
-                    MatchIdentity(s,Modifier.padding(horizontal=18.dp,vertical=10.dp))
-                    TabletopTurn(s,vm,Modifier.padding(horizontal=18.dp,vertical=8.dp))
-                    board(if(scrolling) Modifier.fillMaxWidth().height(boardHeight)
-                        else Modifier.fillMaxWidth().weight(1f))
-                    TabletopCounts(match.state,Modifier.padding(horizontal=18.dp,vertical=14.dp))
-                    TabletopActions(s,vm,playable,Modifier.padding(horizontal=18.dp,vertical=8.dp),
-                        onShowResult={ resultDismissed=false })
+                if (landscape) Row(Modifier.fillMaxSize()) {
+                    board(Modifier.weight(1f).fillMaxHeight())
+                    Column(Modifier.width(railWidth).fillMaxHeight()
+                        .verticalScroll(scroll).padding(horizontal=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                        navigation(false)
+                        MatchIdentity(s)
+                        TabletopTurn(s,vm)
+                        TabletopCounts(match.state)
+                        TabletopActions(s,vm,playable,onShowResult={ resultDismissed=false })
+                    }
+                } else {
+                    val boardHeight=(maxWidth-36.dp)*.8f+60.dp
+                    Column(Modifier.fillMaxSize().then(if(scrolling) Modifier.verticalScroll(scroll) else Modifier),
+                        horizontalAlignment=Alignment.CenterHorizontally) {
+                        MatchIdentity(s,Modifier.padding(horizontal=18.dp,vertical=10.dp))
+                        TabletopTurn(s,vm,Modifier.padding(horizontal=18.dp,vertical=8.dp))
+                        board(if(scrolling) Modifier.fillMaxWidth().height(boardHeight)
+                            else Modifier.fillMaxWidth().weight(1f))
+                        TabletopCounts(match.state,Modifier.padding(horizontal=18.dp,vertical=14.dp))
+                        TabletopActions(s,vm,playable,Modifier.padding(horizontal=18.dp,vertical=8.dp),
+                            onShowResult={ resultDismissed=false })
+                    }
                 }
             }
         }
