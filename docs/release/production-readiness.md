@@ -1,3 +1,5 @@
+> **Latest setup:** See [submission status](submission-status.md) for the signed candidate, package availability, approved free/global distribution, completed SDK/app-ads.txt checks and remaining policy/setup gates.
+
 > **Advertising update, 2026-10-19:** D061 adds Google Mobile Ads/UMP and changes the candidate inputs. The earlier no-ads artifact and counts below are historical. Use [current advertising evidence](ads-integration.md) and [updated privacy review](privacy-and-ads-review.md) for this candidate. The repository is now public with Apache-2.0 code licensing, and the advertising privacy-policy update and AdMob European message were published under D062.
 
 # Google Play production preparation — 2026-10-19

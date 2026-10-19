@@ -56,8 +56,8 @@ See [production readiness and blockers](docs/release/production-readiness.md),
 [privacy / Google ads review](docs/release/privacy-and-ads-review.md).
 With the development environment below configured, run
 `python3 scripts/prepare_play_release.py` to build and retain local release
-evidence under ignored `artifacts/local/`. This does not sign with a release key,
-upload, or establish production acceptance. Use an exclusive checkout/build
+evidence under ignored `artifacts/local/`. This stays unsigned by default and never uploads or establishes production acceptance.
+For explicitly configured upload signing, see [signing setup](docs/release/signing.md). Use an exclusive checkout/build
 session; run device checks separately on an exclusively available test device.
 
 ## Development environment
@@ -100,7 +100,7 @@ mkdir -p work
 python3 scripts/summarize_ai.py work/ai-evaluation.log
 ```
 
-Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. During early development, every PR runs only the JVM unit-test command above; APK assembly, lint and emulator regression are reserved for manual runs. Manually run **Android verification** on the relevant branch to run unit tests, build/lint and an **API 36** emulator by default: `gh workflow run android.yml --ref <branch> -f emulator_suite=api36`. Select `emulator_suite=full` when broader API 29/34/36/37 coverage is needed. The same options are available under **Android verification → Run workflow** in GitHub Actions. D059 accepts API 36 alone for the Compact Tabletop delivery. Unit-test success does not establish rendered UI, device or release qualification. No release signing/publishing is configured.
+Dependencies are pinned and locked; `gradle/verification-metadata.xml` records SHA-256 checksums for the resolved artifacts. Review dependency changes before deliberately regenerating locks/metadata. During early development, every PR runs only the JVM unit-test command above; APK assembly, lint and emulator regression are reserved for manual runs. Manually run **Android verification** on the relevant branch to run unit tests, build/lint and an **API 36** emulator by default: `gh workflow run android.yml --ref <branch> -f emulator_suite=api36`. Select `emulator_suite=full` when broader API 29/34/36/37 coverage is needed. The same options are available under **Android verification → Run workflow** in GitHub Actions. D059 accepts API 36 alone for the Compact Tabletop delivery. Unit-test success does not establish rendered UI, device or release qualification. Release signing is opt-in with external credentials; no automated publishing is configured.
 
 CI invokes `bash scripts/ci-connected-tests.sh` around the connected-test command to print instrumentation counts, failure reports and device crash diagnostics without changing the test exit status. Espresso 3.7.0 is explicitly pinned for API 37 input-service compatibility.
 

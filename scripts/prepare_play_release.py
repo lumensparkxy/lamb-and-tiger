@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build and retain local Play preparation evidence; never sign or publish.
+"""Build and retain local Play preparation evidence; never upload or publish.
 
 Run from this checkout with JAVA_HOME and ANDROID_HOME configured as in README.
 Device tests are intentionally separate: their device must be exclusively available.
+Signing is opt-in with --signed and explicit upload credentials.
 """
 import argparse
 import hashlib
@@ -47,8 +48,12 @@ def run(command, log):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--live-ads', action='store_true', help='Build the unsigned candidate with owned AdMob IDs; does not publish')
+    parser.add_argument('--live-ads', action='store_true', help='Build the candidate with owned AdMob IDs; does not publish')
+    parser.add_argument('--signed', action='store_true', help='Sign with the configured upload key and verify its expected SHA-256 fingerprint')
     args = parser.parse_args()
+    expected_certificate = os.environ.get('LAMB_UPLOAD_CERT_SHA256', '').replace(':', '').upper()
+    if args.signed and not re.fullmatch(r'[0-9A-F]{64}', expected_certificate):
+        raise RuntimeError('Set LAMB_UPLOAD_CERT_SHA256 to the approved upload certificate fingerprint')
     for name in ('JAVA_HOME', 'ANDROID_HOME'):
         if not os.environ.get(name):
             raise RuntimeError(f'Set {name} as documented in README')
@@ -67,6 +72,7 @@ def main():
          ':nearby:lintRelease', ':app:bundleRelease', 'printBuildLocations', '--console=plain'],
     ]
     commands[1].append('-Plamb.liveAds=' + str(args.live_ads).lower())
+    commands[1].append('-Plamb.signRelease=' + str(args.signed).lower())
     (out / 'commands.json').write_text(json.dumps(commands, indent=2) + '\n')
     run(commands[0], out / 'doctor.log')
     run(commands[1], out / 'build.log')
@@ -83,6 +89,24 @@ def main():
         native = [n for n in archive.namelist() if n.endswith('.so')]
         signatures = [n for n in archive.namelist()
                       if re.match(r'META-INF/[^/]+\.(RSA|DSA|EC)$', n, re.I)]
+    certificate_sha256 = None
+    if args.signed:
+        if len(signatures) != 1:
+            raise RuntimeError('Expected exactly one upload signer')
+        jdk_bin = Path(os.environ['JAVA_HOME']) / 'bin'
+        run([str(jdk_bin / 'jarsigner'), '-J-Duser.language=en', '-verify',
+             str(out / 'app-release.aab')], out / 'signature-verification.txt')
+        if 'jar verified.' not in (out / 'signature-verification.txt').read_text():
+            raise RuntimeError('Bundle signature was not verified')
+        run([str(jdk_bin / 'keytool'), '-J-Duser.language=en', '-printcert',
+             '-jarfile', str(out / 'app-release.aab')], out / 'upload-certificate.txt')
+        certificate = (out / 'upload-certificate.txt').read_text()
+        match = re.search(r'SHA256:\s*([0-9A-F:]+)', certificate)
+        certificate_sha256 = match.group(1).replace(':', '') if match else None
+        if certificate_sha256 != expected_certificate or 'CN=Android Debug' in certificate:
+            raise RuntimeError('Bundle signer does not match the approved non-debug upload certificate')
+    elif signatures:
+        raise RuntimeError('Unsigned preparation unexpectedly produced a signed bundle')
     manifest = app / 'intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml'
     shutil.copy2(manifest, out / 'merged-release-manifest.xml')
     tree = ET.parse(manifest).getroot()
@@ -135,11 +159,12 @@ def main():
         'package': tree.get('package'), 'version_code': tree.get(ns + 'versionCode'),
         'version_name': tree.get(ns + 'versionName'),
         'min_sdk': sdk.get(ns + 'minSdkVersion'), 'target_sdk': sdk.get(ns + 'targetSdkVersion'),
-        'signing': 'signature entries present; verify certificate separately' if signatures else 'unsigned',
+        'signing': 'verified upload signature' if args.signed else 'unsigned',
+        'upload_certificate_sha256': certificate_sha256,
         'native_libraries': native, 'unit_tests': tests, 'release_lint': lint,
         'live_ads_enabled': ads_enabled, 'permissions': permissions,
         'publication_ready': False,
-        'not_certified': ['signing identity', 'bundletool validation', 'Play version availability',
+        'not_certified': ['Play App Signing registration', 'bundletool validation', 'Play version availability',
                           'installed release/upgrade', '16 KB runtime and APK alignment',
                           'emulator and physical acceptance', 'store materials and policy'],
     }

@@ -11,10 +11,12 @@ Updated 2026-10-19 after D061. Evidence and proposed answers, not submitted decl
 - INTERNET is added. AD_ID and Android AdServices ID/attribution/topics permissions are explicitly removed. Backup remains disabled. Inspect the final merged release manifest, not only the source.
 - Google's Mobile Ads disclosure describes SDK collection/sharing of IP, product interactions, diagnostics and identifiers. Child treatment, non-personalized ads or absent AD_ID permission do not establish zero data processing. Nearby diagnostics remain a separate review item.
 
+See the [current submission status](submission-status.md) for the confirmed CDM and mixed-age-screen gaps and final ad dismissal qualification.
+
 ## Remaining publication gates
 
 1. **Families/Bluetooth:** [Families policy](https://support.google.com/googleplay/android-developer/answer/9893335) requires Companion Device Manager for covered Bluetooth requests. Resolve applicability to the direct Nearby flow and verify a compliant implementation on two physical phones. Do not silently change the audience.
-2. **Child-audience SDK eligibility:** verify the exact pinned Google Ads SDK against the current self-certified list and any serving restrictions; review Nearby's child-audience suitability and diagnostics separately. App-level treatment signals do not certify the whole product.
+2. **Child-audience SDK eligibility:** Google Ads 25.5.0 is covered by the current self-certified list (AdMob 19.0.0 or later), verified 2026-10-19; review serving restrictions and Nearby's child-audience suitability and diagnostics separately. App-level treatment signals do not certify the whole product.
 3. **Public policy:** the game-specific policy is public at https://github.com/lumensparkxy/lamb-and-tiger/blob/main/PRIVACY.md. The advertising disclosure update was published on 2026-10-19 in commit `9e67324`. Preserve Krishi AI's separate policy.
 4. **Data safety:** complete the collection/sharing/purpose/encryption/deletion assessment for the actual SDK configuration and applicable exemptions. Local-only saves and peer exchanges need separate treatment. No final “no collection” conclusion has been made.
 5. **AdMob:** the app/units exist, but store association, app readiness review, developer-site/app-ads.txt verification and relevant privacy-message/account configuration still need production validation. Test creatives do not prove publisher ad fill or account approval.
@@ -32,7 +34,7 @@ Updated 2026-10-19 after D061. Evidence and proposed answers, not submitted decl
 | Data safety | Draft only; SDK data mapping remains unresolved. |
 | Privacy URL | Repository policy URL above; advertising update published. |
 | Support | maswadkar@gmail.com |
-| Price / countries | Not supplied; do not infer free worldwide. |
+| Price / countries | Owner approved free with ads in all supported countries on 2026-10-19; not yet applied in Play. |
 
 ## Official sources checked 2026-10-19
 

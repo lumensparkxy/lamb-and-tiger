@@ -149,3 +149,6 @@ When a proposal is accepted, record the decision and rationale here. Introduce s
 
 
 **D062 — 2026-10-19:** The user explicitly authorized reviewing and publishing the AdMob privacy message and updated privacy policy, then committing and pushing the changes. Publish the Lamb and Tiger message only, preserve unrelated app/account settings and pre-existing local Nearby/accessibility changes, and verify the owned-app UMP configuration with Google test ad units. This does not authorize a Play submission, release signing or rollout.
+
+
+**D063 — 2026-10-19:** The user requested continuing Google Play submission and completing remaining setup. They selected free with ads in all supported countries and approved creation of a dedicated Lamb and Tiger upload key after discussing per-app keys with Play App Signing. Stage and verify the release setup without changing the inclusive audience or silently removing Nearby. Key material stays outside Git; owner-controlled vault backup remains required. No unresolved policy claim or legal certification is inferred from this authorization. See [current submission status](release/submission-status.md).

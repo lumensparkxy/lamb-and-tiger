@@ -4,6 +4,10 @@ val liveAppId = providers.gradleProperty("lamb.admobAppId").orNull.orEmpty()
 val liveBannerId = providers.gradleProperty("lamb.admobBannerId").orNull.orEmpty()
 val liveInterstitialId = providers.gradleProperty("lamb.admobInterstitialId").orNull.orEmpty()
 val testAppId = "ca-app-pub-3940256099942544~3347511713"
+// Opt-in upload signing. Credentials belong in a vault/local environment, never Git.
+val signRelease = providers.gradleProperty("lamb.signRelease").orNull == "true"
+fun signingSecret(name: String): String = providers.environmentVariable(name).orNull
+    ?.takeIf { it.isNotBlank() } ?: error("Missing signing environment variable: $name")
 if (liveAds) {
     require(liveAppId.matches(Regex("ca-app-pub-[0-9]{16}~[0-9]{10}")) && !liveAppId.contains("3940256099942544")) { "Owned AdMob app ID required" }
     for (id in listOf(liveBannerId, liveInterstitialId)) {
@@ -26,9 +30,23 @@ android {
         buildConfigField("String", "BANNER_AD_UNIT_ID", "\"\"")
         buildConfigField("String", "INTERSTITIAL_AD_UNIT_ID", "\"\"")
     }
+    if (signRelease) signingConfigs {
+        create("upload") {
+            val path = File(signingSecret("LAMB_UPLOAD_KEYSTORE"))
+            require(path.isAbsolute && path.isFile) { "LAMB_UPLOAD_KEYSTORE must be an existing absolute file path" }
+            require(!path.canonicalFile.toPath().startsWith(rootDir.canonicalFile.toPath())) {
+                "Keep the upload keystore outside the repository"
+            }
+            storeFile = path
+            storePassword = signingSecret("LAMB_UPLOAD_STORE_PASSWORD")
+            keyAlias = signingSecret("LAMB_UPLOAD_KEY_ALIAS")
+            keyPassword = signingSecret("LAMB_UPLOAD_KEY_PASSWORD")
+        }
+    }
     buildTypes {
         debug { applicationIdSuffix = ".debug" }
         release {
+            if (signRelease) signingConfig = signingConfigs.getByName("upload")
             manifestPlaceholders["admobAppId"] = if (liveAds) liveAppId else testAppId
             buildConfigField("boolean", "ADS_ENABLED", liveAds.toString())
             buildConfigField("String", "BANNER_AD_UNIT_ID", "\"${if (liveAds) liveBannerId else ""}\"")
