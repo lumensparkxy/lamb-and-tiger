@@ -30,3 +30,7 @@ This is structural validation, direct application and a scenario review by the a
 Revalidated the personal skill structurally after D061: passed. The repository preparation helper now accepts `--live-ads`, records the requested/actual serving configuration and rejects advertising/AdServices permissions in the merged child-treatment release manifest. SDK test IDs and owned-account UMP readiness are tracked separately; an actual missing-message error is retained instead of reporting the test creatives as production readiness.
 
 The reusable materials reference now includes three distinct ad evidence levels (fake behavior, real SDK test creatives, owned-account readiness), separate UMP/ad age signals, compiled QA isolation, stale-callback/dismissal checks, and draft/account-wide privacy-message review. This addition contains no Lamb and Tiger account IDs, package, test device or repository-specific commands. Structural validation passed after the edit.
+
+## D064 follow-up
+
+Updated the reusable materials reference for actual CDM endpoint binding, authorization for radio changes, association/lifecycle cleanup, physical-device evidence, neutral age selection and unknown/corrupt/shared-device behavior. Retained separate UMP and GMA treatment checks and the distinction between a test creative and production dismissal-time qualification. Skill Creator structural validation passed. This is a focused author review and direct application, not an independent-agent evaluation or a production submission test.

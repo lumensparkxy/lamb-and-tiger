@@ -1,37 +1,18 @@
 package com.maswadkar.lambandtiger.nearby
 
 import android.Manifest.permission.*
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 class NearbyPermissionsTest {
-    @Test fun android10And11UseLocationWithoutNewRadioPermissions() {
-        for (api in 29..30) {
-            assertEquals(setOf(ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION),
-                NearbyPermissions.runtimeFor(api).toSet())
-        }
+    @Test fun oldAndroidUsesCdmWithoutRuntimeLocation() {
+        for (api in 29..30) for (host in listOf(true, false)) assertTrue(NearbyPermissions.runtimeFor(api, host).isEmpty())
     }
-
-    @Test fun android12And12LKeepLocationAndAddBluetooth() {
-        for (api in 31..32) {
-            val permissions = NearbyPermissions.runtimeFor(api)
-            assertTrue(permissions.containsAll(listOf(ACCESS_COARSE_LOCATION,
-                ACCESS_FINE_LOCATION, BLUETOOTH_SCAN, BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE)))
-            assertFalse(permissions.contains(NEARBY_WIFI_DEVICES))
-        }
+    @Test fun joiningNeedsOnlyConnectionPermission() {
+        for (api in 31..37) assertEquals(listOf(BLUETOOTH_CONNECT), NearbyPermissions.runtimeFor(api, false))
     }
-
-    @Test fun android13Through17UseNearbyWifiWithoutLocation() {
-        for (api in 33..37) {
-            assertEquals(setOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE,
-                NEARBY_WIFI_DEVICES), NearbyPermissions.runtimeFor(api).toSet())
-        }
+    @Test fun hostingAlsoNeedsDiscoverability() {
+        for (api in 31..37) assertEquals(listOf(BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE), NearbyPermissions.runtimeFor(api, true))
     }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun olderAndroidIsOutsideTheHarnessScope() {
-        NearbyPermissions.runtimeFor(28)
-    }
+    @Test(expected = IllegalArgumentException::class) fun rejectsUnsupportedAndroid() { NearbyPermissions.runtimeFor(28) }
 }

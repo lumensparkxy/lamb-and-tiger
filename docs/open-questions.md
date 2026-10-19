@@ -41,9 +41,9 @@ JVM/lint evidence, listing drafts and a published advertising privacy policy now
 signing custody, distribution, physical acceptance or policy compliance.
 
 - Store account/ownership, signing custody, distribution track and release acceptance criteria?
-- Price/countries remain owner decisions. The current code includes Google Mobile Ads and UMP with Home banner and completed-game interstitial placements. Live serving requires the explicit release flag and final policy/account review. No purchases or custom game analytics. Review Nearby and advertising SDK diagnostics separately.
+- D063 settles free with ads in all supported countries; Console setup remains. The current code includes Google Mobile Ads and UMP with Home banner and completed-game interstitial placements. Live serving requires the explicit release flag and final policy/account review. No purchases or custom game analytics. Google Nearby is removed under D064; review the current advertising SDK disclosures.
 - Actual audience, privacy and SDK disclosures for the eventual release, with a current target-SDK recheck?
 - Explicit authorization for merging and any Play release publication? D062 authorizes the privacy-policy/message publication and scoped commit/push; it does not authorize a Play rollout.
-- Resolve the Families Bluetooth/CDM and child-audience SDK findings, and final Data safety declarations; see [privacy review](release/privacy-and-ads-review.md).
+- Complete physical acceptance of the D064 CDM/Bluetooth and mixed-age changes, and final Data safety declarations; see [privacy review](release/privacy-and-ads-review.md).
 
 The repository is now public under lumensparkxy with Apache-2.0 code licensing, following the owner's separate authorization. Release signing and publication remain separate. These gates do not prevent the authorized local Solo implementation.

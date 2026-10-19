@@ -13,7 +13,12 @@ class AdsSdkSmokeTest {
         val calls = AtomicInteger()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             var activity: MainActivity? = null
-            scenario.onActivity { activity = it }
+            scenario.onActivity {
+                activity = it
+                it.ads.updateAudience(false); it.audience.changePlayer()
+                assertFalse(it.ads.eligible); assertFalse(it.ads.bannerAllowed); assertFalse(it.ads.interstitialReady)
+                it.audience.choose(com.maswadkar.lambandtiger.privacy.AgeGroup.UNDER_13)
+            }
             fun waitFor(timeout: Long, check: () -> Boolean) {
                 val end = android.os.SystemClock.elapsedRealtime() + timeout
                 while (android.os.SystemClock.elapsedRealtime() < end) {

@@ -36,7 +36,7 @@ private object AdsRuntime {
 
 /** Activity-owned; all entry points and callbacks run on the main thread. */
 internal class AdsController(private val activity: Activity) {
-    private val consent = UserMessagingPlatform.getConsentInformation(activity)
+    private val consent by lazy { UserMessagingPlatform.getConsentInformation(activity) }
     private val prefs = activity.getSharedPreferences("advertising", Activity.MODE_PRIVATE)
     private val gate = InterstitialGate(System::currentTimeMillis,
         { prefs.getLong("lastShown", 0) },
@@ -45,6 +45,7 @@ internal class AdsController(private val activity: Activity) {
     var eligible by mutableStateOf(false); private set
     var privacyRequired by mutableStateOf(false); private set
     var privacyError by mutableStateOf(false); private set
+    private var audienceSelected = false
     private var home = false
     private var settings = false
     private var completed: String? = null
@@ -61,11 +62,20 @@ internal class AdsController(private val activity: Activity) {
     var showing = false; private set
     private var finishPending: String? = null
     private var activeAdKey: String? = null
-    val interstitialReady: Boolean get() = valid() && resumed && eligible && !modal && interstitial != null &&
+    val interstitialReady: Boolean get() = audienceSelected && valid() && resumed && eligible && !modal && interstitial != null &&
         System.currentTimeMillis() - loadedAt < 3_600_000L
-    val bannerAllowed: Boolean get() = BuildConfig.ADS_ENABLED && eligible &&
+    val bannerAllowed: Boolean get() = BuildConfig.ADS_ENABLED && audienceSelected && eligible &&
         AdsRuntime.initialized && resumed && home && !modal && !showing
 
+    fun updateAudience(selected: Boolean) {
+        if (selected == audienceSelected) return
+        audienceSelected = selected
+        requested = false; updating = false; privacyRequired = false; privacyError = false
+        formLoading = false
+        invalidate()
+        if (!selected) { home = false; settings = false; completed = null; gate.cancel() }
+        refresh()
+    }
     fun updateLocation(isHome: Boolean, isSettings: Boolean, completedMatch: String?) {
         home = isHome; settings = isSettings; completed = completedMatch
         refresh()
@@ -77,14 +87,14 @@ internal class AdsController(private val activity: Activity) {
     }
     private fun valid() = !destroyed && !activity.isFinishing && !activity.isDestroyed
     private fun refresh() {
-        if (!BuildConfig.ADS_ENABLED || !valid() || !resumed) return
+        if (!BuildConfig.ADS_ENABLED || !audienceSelected || !valid() || !resumed) return
         finishPending?.let { key -> finishPending = null; gate.finish(key, completed) }
         if (home && !requested) requestPrivacy()
         if (home && requested && !updating && !eligible && !privacyError && !modal) showRequiredForm()
         if (eligible && AdsRuntime.initialized && (home || completed != null)) preload()
     }
     fun requestPrivacy() {
-        if (!BuildConfig.ADS_ENABLED || !valid() || !(home || settings) || modal || updating) return
+        if (!BuildConfig.ADS_ENABLED || !audienceSelected || !valid() || !(home || settings) || modal || updating) return
         requested = true; updating = true; privacyError = false; invalidate()
         val token = generation
         val parameters = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(true).build()
@@ -100,7 +110,7 @@ internal class AdsController(private val activity: Activity) {
         })
     }
     private fun showRequiredForm() {
-        if (!valid() || !resumed || !(home || settings) || formLoading || modal ||
+        if (!audienceSelected || !valid() || !resumed || !(home || settings) || formLoading || modal ||
             consent.consentStatus != ConsentInformation.ConsentStatus.REQUIRED) return
         formLoading = true
         val token = generation
@@ -119,17 +129,19 @@ internal class AdsController(private val activity: Activity) {
         }, { if (valid() && token == generation) { formLoading = false; privacyError = true } })
     }
     private fun acceptEligibility() {
+        if (!audienceSelected || !valid()) return
         eligible = consent.canRequestAds()
         privacyRequired = consent.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
         if (eligible) AdsRuntime.initialize(activity)
         refresh()
     }
     fun privacyOptions() {
-        if (!valid() || !resumed || !settings || !privacyRequired || modal) return
+        if (!audienceSelected || !valid() || !resumed || !settings || !privacyRequired || modal) return
         invalidate(); modal = true
+        val token = generation
         UserMessagingPlatform.showPrivacyOptionsForm(activity) { error ->
             modal = false
-            if (valid()) { privacyError = error != null; if (error == null) acceptEligibility() }
+            if (valid() && token == generation) { privacyError = error != null; if (error == null) acceptEligibility() }
         }
     }
     private fun invalidate() {

@@ -22,7 +22,8 @@ internal data class FriendUi(
 )
 internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transport.Listener {
     private val store=FriendStore(app)
-    private val transport=GoogleNearbyTransport(app)
+    private val transport=CdmBluetoothTransport(app)
+    val pairing = CompanionPairing(app)
     val label get()=transport.label
     private val main=Handler(Looper.getMainLooper())
     private val _ui=MutableStateFlow(FriendUi())
@@ -74,10 +75,10 @@ internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transp
             saved=old.saved || s.record?.started==true, savedHost=s.record?.match?.host==s.player)
     }
     fun enter() { activeScreen=true }
-    fun leave() { activeScreen=false; _ui.value=_ui.value.copy(leaving=false); stop() }
+    fun leave() { pairing.cancel(); CompanionPairing.clearAssociations(getApplication()); activeScreen=false; _ui.value=_ui.value.copy(leaving=false); stop() }
     fun foreground(value: Boolean) { foreground=value; if(!value && activeScreen) stop() }
     fun permissionDenied() { _ui.value=_ui.value.copy(phase="permission",error=true) }
-    fun start(host: Boolean, resume: Boolean) {
+    fun start(host: Boolean, resume: Boolean, companion: String? = null) {
         if(!foreground || !activeScreen) return
         transport.stop(); channel=null; linkUp=false; generation++
         val ticket=generation
@@ -90,7 +91,7 @@ internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transp
                 val bytes=packet.bytes()
                 main.post { if(ticket==generation && linkUp) runCatching { channel?.enqueue(bytes) }.onFailure { stopped("Backpressure") } }
             }
-            main.post { if(ticket==generation && foreground && activeScreen) transport.start(host,this) }
+            main.post { if(ticket==generation && foreground && activeScreen) run { transport.selectCompanion(companion); transport.start(host,this) } }
         }
     }
     fun stop() {
@@ -150,6 +151,6 @@ internal class FriendViewModel(app: Application) : AndroidViewModel(app), Transp
             enqueue { session!!.action(action); publish() }
         } else _ui.value=s.copy(selected=if(s.selected==node) null else node.takeIf { n -> actions.any { it.origin==n } })
     }
-    override fun onCleared() { generation++; linkUp=false; transport.stop(); commands.close(); /* actor drains before closing storage */
+    override fun onCleared() { generation++; linkUp=false; pairing.cancel(); transport.close(); CompanionPairing.clearAssociations(getApplication()); commands.close(); /* actor drains before closing storage */
     }
 }

@@ -149,13 +149,13 @@
     <string name="friend_host">விளையாட்டை நடத்துங்கள்</string>
     <string name="friend_join">விளையாட்டில் இணையுங்கள்</string>
     <string name="friend_continue">அருகிலுள்ள விளையாட்டைத் தொடருங்கள்</string>
-    <string name="friend_intro">அருகிலுள்ள நண்பருடன் விளையாடுங்கள். ஒரு கைபேசியில் நடத்தவும், மற்றொன்றில் இணையவும்.</string>
-    <string name="friend_hosting">நண்பருக்காகக் காத்திருக்கிறது. மற்ற கைபேசியில் இந்த அமர்வைத் தேர்ந்தெடுக்கவும்:</string>
-    <string name="friend_joining">அருகிலுள்ள அமர்வுகளைத் தேடுகிறது…</string>
+    <string name="friend_intro">Bluetooth வழியாக நண்பருடன் விளையாடுங்கள். ஒரு கைபேசியில் நடத்தவும், மற்றொன்றில் இணையவும். Android மூலம் கைபேசிகளைத் தேர்ந்தெடுத்து இணைக்கவும்.</string>
+    <string name="friend_hosting">நண்பருக்காகக் காத்திருக்கிறது. மற்ற கைபேசியில் இணையவும் என்பதைத் தேர்ந்தெடுத்து, Android சாதனப் பட்டியலில் இந்தக் கைபேசியைத் தேர்ந்தெடுக்கவும்:</string>
+    <string name="friend_joining">தேர்ந்தெடுத்த கைபேசி. இணைக்க அதைத் தட்டவும்:</string>
     <string name="friend_compare">உறுதிப்படுத்தும் முன் இரு கைபேசிகளிலும் குறியீட்டை ஒப்பிடுங்கள்.</string>
     <string name="friend_confirm_wait">நண்பரின் உறுதிப்படுத்தலுக்காகக் காத்திருக்கிறது.</string>
     <string name="friend_sync">இணைத்து, சேமித்த விளையாட்டைச் சரிபார்க்கிறது…</string>
-    <string name="friend_permission">நண்பரைக் கண்டறிய அருகிலுள்ள சாதன அனுமதிகள் தேவை. மீண்டும் முயலவும் அல்லது Android செயலி அமைப்புகளில் அனுமதிக்கவும்.</string>
+    <string name="friend_permission">Bluetooth அமைப்பு ரத்து செய்யப்பட்டது அல்லது கிடைக்கவில்லை. மீண்டும் முயன்று Android இணைப்பு மற்றும் Bluetooth கோரிக்கைகளை அனுமதிக்கவும். சாதனப் பட்டியலுக்கு Bluetooth மற்றும் இருப்பிடச் சேவைகளை இயக்க வேண்டியிருக்கலாம். கணினியுடன் விளையாடலாம்.</string>
     <string name="friend_error">இணைப்பு அல்லது சேமிப்பைச் சரிபார்க்க முடியவில்லை. விளையாட்டு நிறுத்தப்பட்டுள்ளது. அதே கைபேசிகளை மீண்டும் இணைக்கவும். சேமித்த தகவல்கள் பாதுகாக்கப்பட்டுள்ளன.</string>
     <string name="friend_disconnected">இணைப்பு முடிந்தது. தொடர இரு கைபேசிகளிலும் மீண்டும் இணைத்து உறுதிப்படுத்தவும்.</string>
     <string name="friend_connected">நண்பருடன் இணைக்கப்பட்டது</string>
@@ -186,7 +186,7 @@
     <string name="friend_leave_body">விளையாட்டு இடைநிறுத்தப்பட்டது. சேமித்த நகர்வுகள் பாதுகாக்கப்படும். உறுதியாகாத நகர்வை மீண்டும் இணைக்கும்போது சரிபார்க்க வேண்டும்.</string>
     <string name="friend_connecting">நண்பருடன் இணைக்கிறது…</string>
     <string name="friend_discovery_timeout">அருகிலுள்ள சாதனங்களைத் தேடும் நேரம் முடிந்தது. இரு சாதனங்களையும் திறந்து அருகில் வைத்து, மீண்டும் தொடங்கவும் சேரவும்.</string>
-    <string name="friend_connection_timeout">தேர்ந்தெடுத்த சாதனத்துடன் இணைக்க முடியவில்லை. இரு சாதனங்களையும் திறந்து, Wi-Fi மற்றும் Bluetooth இயக்கி மீண்டும் முயலவும்.</string>
+    <string name="friend_connection_timeout">தேர்ந்தெடுத்த கைபேசியுடன் இணைக்க முடியவில்லை. இரு கைபேசிகளையும் திறந்து, Bluetooth இயக்கி மீண்டும் முயலவும்.</string>
     <string name="friend_confirmation_timeout">குறியீட்டை உறுதிப்படுத்தும் நேரம் முடிந்தது. மீண்டும் இணைத்து இரு சாதனங்களிலும் ஒரே குறியீட்டை உறுதிப்படுத்தவும்.</string>
     <string name="difficulty_title_0">தூங்கும் மீசை</string>
     <string name="difficulty_level_0">மிகவும் எளிது</string>
@@ -203,4 +203,13 @@
     <string name="ad_privacy_options">விளம்பரத் தனியுரிமைத் தேர்வுகள்</string>
     <string name="ad_privacy_unavailable">விளம்பரத் தனியுரிமை அமைப்புகள் கிடைக்கவில்லை. விளம்பரங்கள் இல்லாமல் தொடர்ந்து விளையாடலாம்.</string>
     <string name="retry_ad_privacy">விளம்பரத் தனியுரிமை அமைப்புகளை மீண்டும் முயற்சிக்கவும்</string>
+    <string name="age_title">யார் விளையாடுகிறார்கள்?</string>
+    <string name="age_explanation">தற்போதைய வீரரின் வயதுப் பிரிவைத் தேர்ந்தெடுக்கவும். உங்கள் பதில் இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும். அமைப்புகளில் வீரரை மாற்றலாம்.</string>
+    <string name="age_under_13">13 வயதிற்குக் கீழ்</string>
+    <string name="age_13_15">13–15 வயது</string>
+    <string name="age_16_17">16–17 வயது</string>
+    <string name="age_18_plus">18 வயது அல்லது அதற்கு மேல்</string>
+    <string name="age_continue">தொடரவும்</string>
+    <string name="age_save_error">பதிலைச் சேமிக்க முடியவில்லை. மீண்டும் முயலவும்.</string>
+    <string name="change_player">வீரரை மாற்றவும்</string>
 </resources>

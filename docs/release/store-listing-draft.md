@@ -18,7 +18,7 @@ PLAY AI
 Challenge the computer at five difficulty levels, from Sleepy Whiskers to Grandmaster Growl. Solo play works offline. Use Hint for a suggested legal action and Undo to revisit your last turn.
 
 PLAY FRIEND
-Play nearby on two compatible Android phones using Bluetooth and Wi-Fi through Google Play services. Host or join a game, compare the connection code, choose your sides and confirm when you are ready. No app account is required. Nearby permissions and a compatible device are needed for this mode.
+Play nearby on two compatible Android phones using Bluetooth and Android’s device picker. Host or join a game, compare the connection code, choose your sides and confirm when you are ready. No app account is required. Bluetooth permissions and compatible devices are needed for this mode.
 
 LEARN BY PLAYING
 Read Quick Rules or practise with the Guided Tutorial. Learn to place lambs, move pieces, capture and recognise winning positions.
@@ -60,4 +60,4 @@ Use [Google's preview-asset requirements](https://support.google.com/googleplay/
 
 No app login is required. From Home, Play AI → select side and difficulty → Start Game. Quick Rules and Guided Tutorial are available under How to Play. Settings offers the two themes and feedback controls.
 
-Play Friend needs two nearby compatible phones with Google Play services. On one choose Host Game, on the other Join Game. Grant requested Nearby/radio permissions, select the discovered opponent, compare and confirm the same code on both phones, choose opposite sides and confirm readiness on both. Resume requires the same opponent, matching saved state and mutual readiness. Solo remains available when Nearby cannot be used. Final reviewer instructions must be checked against the accepted two-phone build.
+Play Friend needs two nearby compatible Android phones with Bluetooth and Companion Device Manager support. On one choose Host Game, on the other Join Game. On the host, allow Bluetooth discoverability. On the joining phone, select the host in Android’s device picker and allow Bluetooth connection/pairing requests. Then compare and confirm the same code on both phones, choose opposite sides and confirm readiness on both. Resume requires the same opponent, matching saved state and mutual readiness. Solo remains available when Nearby cannot be used. Final reviewer instructions must be checked against the accepted two-phone build.

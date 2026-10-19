@@ -1,6 +1,10 @@
 package com.maswadkar.lambandtiger
 
 import android.content.pm.PackageManager
+import android.content.Intent
+import android.bluetooth.BluetoothAdapter
+import androidx.activity.result.IntentSenderRequest
+import androidx.lifecycle.withResumed
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,8 +43,8 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
     val s by model.ui.collectAsStateWithLifecycle()
     val ads = com.maswadkar.lambandtiger.ads.LocalAds.current
     val context=LocalContext.current
-    var host by remember { mutableStateOf(true) }
-    var resume by remember { mutableStateOf(false) }
+    var host by rememberSaveable { mutableStateOf(true) }
+    var resume by rememberSaveable { mutableStateOf(false) }
     val view=androidx.compose.ui.platform.LocalView.current
     var lastMatch by remember { mutableStateOf(s.match?.id) }
     var lastCount by remember { mutableIntStateOf(s.match?.state?.eventCount ?: 0) }
@@ -57,15 +61,54 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
         if(m!=null) { lastMatch=m.id; lastCount=m.state.eventCount }
     }
     DisposableEffect(model) { model.enter(); onDispose { if((context as? android.app.Activity)?.isChangingConfigurations != true) model.leave() } }
-    val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        if(NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT).all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED })
-            model.start(host,resume) else model.permissionDenied()
+    var companion by rememberSaveable { mutableStateOf<String?>(null) }
+    var startPending by rememberSaveable { mutableStateOf(false) }
+    var setupStage by rememberSaveable { mutableStateOf("") }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(startPending) {
+        if (startPending) lifecycle.withResumed {
+            startPending = false
+            model.start(host, resume, companion)
+        }
+    }
+    val discoverable = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (setupStage == "discoverable") {
+            setupStage = ""
+            if (result.resultCode > 0) startPending = true else model.permissionDenied()
+        }
+    }
+    fun afterPermissions() {
+        if (host) runCatching {
+            setupStage = "discoverable"
+            discoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+                .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120))
+        }.onFailure { model.permissionDenied() }
+        else startPending = true
+    }
+    val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (setupStage != "permission") return@rememberLauncherForActivityResult
+        setupStage = ""
+        if (NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT, host).all {
+                context.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) afterPermissions()
+        else model.permissionDenied()
+    }
+    fun permissionStep() {
+        val needed = NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT, host)
+        if (needed.all { context.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) afterPermissions()
+        else { setupStage = "permission"; permissions.launch(needed.toTypedArray()) }
+    }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        if (setupStage != "picker") return@rememberLauncherForActivityResult
+        setupStage = ""
+        companion = if (result.resultCode == android.app.Activity.RESULT_OK) model.pairing.result(result.data) else null
+        if (companion != null) permissionStep() else { model.pairing.cancel(); model.permissionDenied() }
     }
     fun start(isHost: Boolean, continuing: Boolean) {
-        host=isHost; resume=continuing
-        val needed=NearbyPermissions.runtimeFor(Build.VERSION.SDK_INT)
-        if(needed.all { context.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED }) model.start(host,resume)
-        else permissions.launch(needed.toTypedArray())
+        model.stop(); model.pairing.cancel()
+        host = isHost; resume = continuing; companion = null; startPending = false
+        setupStage = ""
+        if (host) permissionStep() else model.pairing.request(
+            { setupStage = "picker"; picker.launch(IntentSenderRequest.Builder(it).build()) }, model::permissionDenied)
     }
     FriendContent(s, preferences, model.label, FriendActions(
         start = ::start, connect = model::connect, confirm = model::confirm, stop = model::stop,

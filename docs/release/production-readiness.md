@@ -1,5 +1,8 @@
 > **Latest setup:** See [submission status](submission-status.md) for the signed candidate, package availability, approved free/global distribution, completed SDK/app-ads.txt checks and remaining policy/setup gates.
 
+> Historical preparation report. D064 replaces the transport and adds neutral age selection; the user-created Play app is now verified. Use [current submission status](submission-status.md) and [Families fix evidence](families-fix-evidence.md) for the current candidate and blockers.
+
+
 > **Advertising update, 2026-10-19:** D061 adds Google Mobile Ads/UMP and changes the candidate inputs. The earlier no-ads artifact and counts below are historical. Use [current advertising evidence](ads-integration.md) and [updated privacy review](privacy-and-ads-review.md) for this candidate. The repository is now public with Apache-2.0 code licensing, and the advertising privacy-policy update and AdMob European message were published under D062.
 
 # Google Play production preparation — 2026-10-19

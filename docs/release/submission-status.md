@@ -1,10 +1,21 @@
-# Google Play submission status — 2026-10-19
+# Current Google Play submission status — 2026-10-19
 
-**Not submitted.** The owner authorized continuing Play setup, selected free with ads in all supported countries, and approved a dedicated upload key. Local signing and artifact verification are complete; the current child-inclusive Nearby build is not ready for the policy declaration required to create the app record.
+The user-created [Lamb and Tiger app record](https://play.google.com/console/u/0/developers/6594351209748992514/app/4972975891791973201/app-dashboard) was verified on the dashboard. Initial setup tasks are incomplete. No upload, track release, review submission or rollout was performed in this pass.
 
-## Completed this pass
+D064 implements CDM device selection with secure Bluetooth transport and a neutral age-group screen. See [Families fix verification](families-fix-evidence.md) for the current candidate and actual checks. The older signed bundle below predates these changes and must not be uploaded as the fixed release.
 
-- Live Console: selected the existing developer account, confirmed no game record, checked `com.maswadkar.lambandtiger` as **available**, and staged Lamb and Tiger / English (US) / Game / Free. Availability is not reservation. The form remains unsubmitted. Country selection is not yet accessible; the owner's all-supported-countries choice is recorded, not applied.
+Remaining steps:
+
+1. Verify host/join, matching-code rejection, mutual confirmation, saved-opponent reconnect, interruption and rematch on two physical phones. Android CDM availability, system pairing and actual radio behavior cannot be certified by emulator or JVM tests. Both phones need the new transport version.
+2. AdMob high-engagement ads were disabled and the persisted Off state verified for Lamb and Tiger. Google documents up-to-five-second interstitial skip time with this setting off. Retain representative ad-dismissal qualification; a test creative does not certify every served creative. Complete fluent Tamil review, including the new age/pairing strings.
+3. Complete Play listing, audience/IARC, app access, Data safety and approved all-supported-country setup. Price is owner-approved free with ads. Review account-specific production/testing access on the live Console; app creation alone does not grant production access.
+4. Complete key vault backup/recovery, Play App Signing enrollment, final signed binary/version checks and representative installed/Play-delivered verification. The dedicated key exists outside Git; owner backup remains open.
+5. Complete AdMob store association, readiness and developer-site/app-ads.txt checks. The privacy message is already published; all ages retain the restricted ad configuration.
+
+The local policy and Data safety worksheet now describe CDM/Bluetooth and on-device age groups. Final Console declarations remain unsubmitted. No claim of whole-app Families compliance or production readiness is made.
+
+## Earlier signing/setup evidence (before D064)
+
 - Created a dedicated RSA-4096 upload key outside Git; configured opt-in environment-based signing and certificate checking. See [signing and backup handoff](signing.md). No existing app key was reused; Play has not registered this key yet.
 - Built a signed ad-enabled AAB from isolated `4e933cd` plus only the signing/helper changes, preserving unrelated local Nearby/accessibility edits. Source fingerprint: `ee9141c12404dc45103f257ea7aeb74b81b1906f874b117b7c2cae561cd448f3`.
 - Signed AAB SHA-256: `e68a4af91b622eb63946b2f6425cb4231af89d0d4c9be0afa555b10973215faa`. Version remains code 1 / `0.1-solo`; no Play library record exists to confirm final release-version availability.
@@ -15,16 +26,3 @@
 - Prepared a [Data safety worksheet](data-safety-draft.md) with SDK collection, sharing, purposes and unresolved exemptions.
 
 Evidence stays in ignored `artifacts/local/play-setup-20261019/`, including the exact signed candidate, build/test reports, bundletool logs, APK checks and staged Console screenshot. The first build failed on a Gradle Kotlin DSL namespace reference; it was fixed before the successful candidate. That failed run is not passing evidence.
-
-## Remaining gates, in dependency order
-
-1. **Child-inclusive Nearby Bluetooth flow:** Families policy requires CDM for Bluetooth requests on compatible operating systems. `NearbyPermissions.runtimeFor` and `FriendScreen` currently use direct permission requests; no CDM integration exists. Android documents CDM as association/scanning, not a connection implementation. A superficial association dialog does not demonstrate a valid Nearby flow. Design and verify the association/transport integration while preserving approved reconnect/opponent authentication. Do not remove Nearby or change the audience silently.
-2. **Mixed-age and ad format behavior:** the current general Families policy explicitly calls for age screening for a mixed child/adult ad audience. The app has none. Existing all-user child/G/non-personalized treatment remains protective, but must not be represented as satisfying every mixed-audience requirement. Resolve a neutral age-screen design and appropriate age bands while preserving the owner's inclusive direction. The SDK smoke waits ten seconds before seeking Close; it does not establish the Families five-second dismissal requirement for served full-screen ads. Verify compliant delivery/configuration before production.
-3. **Physical and language acceptance:** only one physical phone was connected this pass. The approved two-physical-phone host/join, reconnect, saved-state, interruption and rematch acceptance remains open. Fluent Tamil review remains open. Emulator evidence cannot replace these checks.
-4. **App creation declarations:** Console requires confirmation that the app meets Developer Program Policies and acceptance/certification of US export compliance, including encryption. The policy declaration was left unchecked because of the concrete gaps above. Request the owner's action-time confirmation for the export certification when the app is otherwise ready; do not ask them to approve an inaccurate policy statement. Automatic protection is shown as the default for a free app; no toggle was changed.
-5. **Store and release setup after record creation:** apply approved countries, review age bands and IARC, complete Data safety and app-access forms, upload final icon/feature graphic and candidate screenshots, register Play App Signing/upload certificate, inspect account-specific production access and testing requirements. No account-age assumption substitutes for that screen. Link the published store record/developer website in AdMob and finish readiness/app-ads.txt verification.
-6. **Key recovery and final binary:** complete a secure vault/off-machine backup and recovery check. Rebuild after policy/feature changes, check final version, signed installed behavior, 16 KB runtime and Play-delivered candidate. The current signed AAB is verification evidence, not a production-approved release.
-
-No app record, track, country selection, rating, data declaration, signing enrollment, upload, review submission or rollout was completed. No legal declaration was accepted. Existing published privacy material is unchanged.
-
-Sources checked: [Families requirements](https://support.google.com/googleplay/android-developer/answer/9893335), [self-certified SDK list](https://support.google.com/googleplay/android-developer/answer/12955712), [CDM behavior](https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing), [AdMob Families treatment](https://support.google.com/admob/answer/6223431), [Play signing](https://developer.android.com/studio/publish/app-signing), [bundletool release](https://github.com/google/bundletool/releases/tag/1.18.3).

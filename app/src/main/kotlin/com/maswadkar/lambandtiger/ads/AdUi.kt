@@ -52,6 +52,11 @@ internal fun HomeBanner() {
 internal fun PrivacyControls() {
     val uri = LocalUriHandler.current
     val ads = LocalAds.current
+    val audience = com.maswadkar.lambandtiger.privacy.LocalAudience.current
+    if (audience != null) TextButton(onClick = { ads?.updateAudience(false); audience.changePlayer() }) {
+        Text(stringResource(R.string.change_player))
+    }
+    if (audience?.error == true) Text(stringResource(R.string.age_save_error))
     TextButton(onClick = { uri.openUri("https://github.com/lumensparkxy/lamb-and-tiger/blob/main/PRIVACY.md") }) {
         Text(stringResource(R.string.privacy_policy))
     }

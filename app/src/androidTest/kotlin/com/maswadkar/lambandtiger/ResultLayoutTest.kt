@@ -20,6 +20,9 @@ import org.junit.Test
 
 class ResultLayoutTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
+    @org.junit.Before fun selectTestAudience() {
+        rule.runOnIdle { rule.activity.audience.choose(com.maswadkar.lambandtiger.privacy.AgeGroup.UNDER_13) }
+    }
 
     @Test fun portraitResultOverlaysStationaryBoard() = checkResult(false)
     @Test fun landscapeResultOverlaysStationaryBoard() = checkResult(true)

@@ -12,22 +12,27 @@ The computer opponent calculates its moves on your device. Your Solo game is not
 
 ## Playing with a nearby friend
 
-When you choose to host or join a nearby game, the app uses **Google Play services Nearby Connections**. It exchanges connection and game information with the other device, including player and match identifiers, game actions, and saved-state information needed to keep the match consistent. Compare the displayed connection code with your friend before accepting a connection.
+When you choose **Host Game** or **Join Game**, the app uses Android Bluetooth. The joining phone uses Android’s **Companion Device Manager** device picker to select the hosting phone. The app connects only to that selected companion, using a secure Bluetooth connection. Both players must compare and confirm the displayed code before game information is exchanged.
 
-Nearby play uses Bluetooth and Wi-Fi permissions. On some older Android versions, Android also requires location permissions for nearby discovery. The game's code does not request geographic coordinates. These permissions are requested when you choose **Host Game** or **Join Game**; Solo play does not require them.
+The phones exchange locally generated player and match identifiers, game actions and saved-state information needed to keep the match consistent. Android processes Bluetooth device names and addresses for device selection, pairing and connection. The app does not send these addresses or game messages to an app-operated server or to AdMob for targeting.
 
-Google documents that the Nearby SDK collects usage diagnostics, subject to the device's **Usage & diagnostics** setting. These diagnostics include connection-performance metrics and device information such as device model, country, software build version and application package name. This SDK behavior is distinct from the game's locally stored save data.
+The host asks Android to make the phone discoverable for up to two minutes. Bluetooth connection and, for hosting, discoverability permissions are requested during setup on Android versions that require them. The app does not request location, Bluetooth scanning or nearby Wi-Fi permissions. Android’s system device picker may require Location Services to be enabled; the game does not request geographic coordinates. Solo play needs no Bluetooth connection.
 
-For details about Google's handling of this information and the available controls, see:
+The app removes its CDM associations when you leave Play Friend, and clears leftover associations when beginning a new joining request. Android Bluetooth bonds can remain; remove them through Android’s Bluetooth settings if you no longer want the phones paired. The app does not rename your phone. Saved opponent identity and game state remain available for an explicitly confirmed reconnect.
 
-- [Nearby Connections and data collection](https://developers.google.com/nearby/connections/overview#data_collection)
-- [Google Privacy Policy](https://policies.google.com/privacy)
+This implementation replaces the earlier Google Nearby Connections SDK. The current version does not include that SDK or its usage-diagnostics integration. Android Bluetooth and system services remain governed by the device’s settings and policies.
+
+## Player age group
+
+Before the game opens, the app asks for the current player’s age group without a preselected answer. It stores only the selected group (under 13, 13–15, 16–17, or 18 and over) on this device. It does not collect a date of birth or send this answer to an app-operated server or advertising service. Choose **Change player** in Settings to remove the answer and select again. Clearing app storage or uninstalling also removes it.
+
+No game features or advertising benefits are offered for choosing an older age. Every age group receives the same restricted advertising settings. Unknown or unanswered age groups cannot trigger the app’s ad initialization or ad requests. This screen is not identity verification or parental consent.
 
 ## Advertising
 
 Ad-enabled versions use **Google AdMob (Google Mobile Ads SDK)** to display a banner on Home and an occasional full-screen ad after a completed game when you choose Play Again or Switch Sides. Ads are not displayed over an ongoing game. If an ad is unavailable, you can continue playing. Earlier versions without advertising do not display these ads.
 
-We configure all ad requests for child-directed treatment, limit requested ad content to Google's **G** category and request non-personalized ads. We do not collect a date of birth or ask players to identify their age. The Android advertising-ID and Android AdServices identifier, attribution and topics permissions are removed from the app. These choices limit advertising behavior; they do not mean that no information is processed.
+We configure all ad requests for child-directed treatment, limit requested ad content to Google's **G** category and request non-personalized ads. We ask only for the local age group described above; we do not collect a date of birth. The Android advertising-ID and Android AdServices identifier, attribution and topics permissions are removed from the app. These choices limit advertising behavior; they do not mean that no information is processed.
 
 Google documents that its Mobile Ads SDK can automatically collect and share information including IP addresses (which can indicate approximate location), app/ad interactions, diagnostics and device or other identifiers, depending on configuration. Google uses SDK information for advertising, measurement, fraud prevention and security. We do not send your saved board positions or Nearby game messages to AdMob as ad-targeting data. Google's services handle advertising information under their own policies; the app developer does not set Google's retention periods.
 

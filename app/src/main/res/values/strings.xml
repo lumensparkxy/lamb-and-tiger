@@ -149,13 +149,13 @@
     <string name="friend_review_draw">Review draw offer</string>
     <string name="friend_join">Join Game</string>
     <string name="friend_continue">Continue Nearby game</string>
-    <string name="friend_intro">Play with a friend nearby. Choose Host on one phone and Join on the other.</string>
-    <string name="friend_hosting">Waiting for your friend. Look for this session on the other phone:</string>
-    <string name="friend_joining">Looking for nearby sessions…</string>
+    <string name="friend_intro">Play over Bluetooth. Choose Host on one phone and Join on the other. Android will ask you to select and pair the phones.</string>
+    <string name="friend_hosting">Waiting for your friend. On the other phone, choose Join and select this phone in Android’s device picker:</string>
+    <string name="friend_joining">Selected phone. Tap it to connect:</string>
     <string name="friend_compare">Compare the code on both phones before confirming.</string>
     <string name="friend_confirm_wait">Waiting for your friend to confirm.</string>
     <string name="friend_sync">Connecting and checking saved game…</string>
-    <string name="friend_permission">Nearby permissions are needed to find your friend. Retry, or allow them in Android app settings.</string>
+    <string name="friend_permission">Bluetooth setup was cancelled or unavailable. Retry and allow Android’s pairing and Bluetooth requests. You may need to enable Bluetooth and Location Services for Android’s device picker. Solo play is still available.</string>
     <string name="friend_error">The connection or saved game could not be verified. Play is blocked; reconnect the same phones to retry. Your saved evidence is retained.</string>
     <string name="friend_disconnected">Connection ended. Reconnect and confirm on both phones to continue.</string>
     <string name="friend_connected">Connected to your friend</string>
@@ -186,7 +186,7 @@
     <string name="friend_leave_body">Play is paused. Saved moves stay on both phones; any unconfirmed move must be reconciled when you reconnect.</string>
     <string name="friend_connecting">Connecting to your friend…</string>
     <string name="friend_discovery_timeout">Nearby search timed out. Keep both devices unlocked and nearby, then try Host and Join again.</string>
-    <string name="friend_connection_timeout">Could not connect to the selected device. Keep both devices unlocked with Wi-Fi and Bluetooth on, then try again.</string>
+    <string name="friend_connection_timeout">Could not connect to the selected phone. Keep both phones unlocked with Bluetooth on, then try again.</string>
     <string name="friend_confirmation_timeout">Code confirmation timed out. Connect again and confirm the matching code on both devices.</string>
     <string name="difficulty_title_0">Sleepy Whiskers</string>
     <string name="difficulty_level_0">Very Easy</string>
@@ -203,4 +203,13 @@
     <string name="ad_privacy_options">Ad privacy choices</string>
     <string name="ad_privacy_unavailable">Ad privacy settings are unavailable. You can keep playing without ads.</string>
     <string name="retry_ad_privacy">Retry ad privacy settings</string>
+    <string name="age_title">Who is playing?</string>
+    <string name="age_explanation">Select the current player’s age group. Your answer stays on this device. You can change players in Settings.</string>
+    <string name="age_under_13">Under 13</string>
+    <string name="age_13_15">13–15</string>
+    <string name="age_16_17">16–17</string>
+    <string name="age_18_plus">18 or over</string>
+    <string name="age_continue">Continue</string>
+    <string name="age_save_error">Could not save your selection. Please try again.</string>
+    <string name="change_player">Change player</string>
 </resources>
