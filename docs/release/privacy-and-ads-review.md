@@ -1,12 +1,12 @@
 # Privacy, audience and advertising review
 
-Updated 2026-10-19 after D064. Evidence and proposed answers, not submitted declarations or a legal-compliance certification. Earlier no-ad candidates are superseded by the current integration.
+Updated 2026-10-19 after D065. Evidence and proposed answers, not submitted declarations or a legal-compliance certification. Earlier no-ad candidates are superseded by the current integration.
 
 ## Current implementation
 
 - Google Mobile Ads 25.5.0 and UMP 4.0.0 are included in `app`; no mediation adapters, billing or custom game analytics added. Google Nearby has been removed; the transport uses Android CDM and secure Bluetooth sockets.
 - Debug disables ad requests; adsQa uses Google test IDs; release requires `-Plamb.liveAds=true` to use the owner's verified IDs. SDK presence remains relevant even when serving is disabled.
-- All users receive GMA `AgeRestrictedTreatment.CHILD`, maximum content rating G, non-personalized request extras and UMP under-age-of-consent treatment. A neutral local age-group answer gates app-initiated advertising; there is no date-of-birth collection and no adult ad path. UMP is not parental consent or age verification.
+- All users receive GMA `AgeRestrictedTreatment.CHILD`, maximum content rating G, non-personalized request extras and UMP under-age-of-consent treatment. D065 removes age selection and age storage; there is no date-of-birth collection or adult ad path. The previous local age answer is deleted on launch. Mixed-audience age screening is again a submission blocker. UMP is not parental consent or age verification.
 - A successful current UMP status update and `canRequestAds()` are required before initialization/requests. Required forms are shown only from Home/Settings. Settings exposes privacy options when UMP requires them, and always links to the policy. Errors disable ads without preventing play.
 - INTERNET is added. AD_ID and Android AdServices ID/attribution/topics permissions are explicitly removed. Backup remains disabled. Inspect the final merged release manifest, not only the source.
 - Google's Mobile Ads disclosure describes SDK collection/sharing of IP, product interactions, diagnostics and identifiers. Child treatment, non-personalized ads or absent AD_ID permission do not establish zero data processing. The removed Nearby SDK is no longer a source of diagnostics in this candidate.

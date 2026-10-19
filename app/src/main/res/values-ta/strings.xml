@@ -203,13 +203,4 @@
     <string name="ad_privacy_options">விளம்பரத் தனியுரிமைத் தேர்வுகள்</string>
     <string name="ad_privacy_unavailable">விளம்பரத் தனியுரிமை அமைப்புகள் கிடைக்கவில்லை. விளம்பரங்கள் இல்லாமல் தொடர்ந்து விளையாடலாம்.</string>
     <string name="retry_ad_privacy">விளம்பரத் தனியுரிமை அமைப்புகளை மீண்டும் முயற்சிக்கவும்</string>
-    <string name="age_title">யார் விளையாடுகிறார்கள்?</string>
-    <string name="age_explanation">தற்போதைய வீரரின் வயதுப் பிரிவைத் தேர்ந்தெடுக்கவும். உங்கள் பதில் இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும். அமைப்புகளில் வீரரை மாற்றலாம்.</string>
-    <string name="age_under_13">13 வயதிற்குக் கீழ்</string>
-    <string name="age_13_15">13–15 வயது</string>
-    <string name="age_16_17">16–17 வயது</string>
-    <string name="age_18_plus">18 வயது அல்லது அதற்கு மேல்</string>
-    <string name="age_continue">தொடரவும்</string>
-    <string name="age_save_error">பதிலைச் சேமிக்க முடியவில்லை. மீண்டும் முயலவும்.</string>
-    <string name="change_player">வீரரை மாற்றவும்</string>
 </resources>

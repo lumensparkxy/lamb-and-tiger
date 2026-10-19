@@ -1,6 +1,6 @@
 # Data safety worksheet — 2026-10-19
 
-Prepared for the ad-enabled candidate, not submitted to Play. Updated for D064 CDM/Bluetooth and local age groups; do not select “no collection.”
+Prepared for the ad-enabled candidate, not submitted to Play. Updated for D065 CDM/Bluetooth with no age collection; do not select “no collection.”
 
 | Data / source | Proposed treatment | Evidence and remaining check |
 | --- | --- | --- |
@@ -8,7 +8,7 @@ Prepared for the ad-enabled candidate, not submitted to Play. Updated for D064 C
 | App interactions / Mobile Ads | Collected and shared; advertising, analytics, fraud prevention/security | SDK documents launch, tap and video-view interactions. No custom gameplay analytics. |
 | Diagnostics and other app performance / Mobile Ads | Collected and shared; advertising, analytics, fraud prevention/security | SDK documents performance metrics. Confirm final Console subtype wording; do not assume a separate crash-reporting product. |
 | Device or other IDs / Mobile Ads | Conservatively disclose collection/sharing; advertising, analytics, fraud prevention/security | AD_ID and AdServices permissions removed; CHILD applied. This does not establish the absence of app-set or every other SDK identifier. Avoid claiming no identifiers without exact SDK evidence. |
-| Solo saves, settings, local age-group answer, local AI, ad-frequency timestamp | On-device only; not declared as off-device collection | App-owned local storage; backup disabled. |
+| Solo saves, settings, local AI, ad-frequency timestamp | On-device only; not declared as off-device collection | App-owned local storage; backup disabled. |
 | Peer identity, moves, saved-state agreement / secure Bluetooth | User-initiated encrypted peer transfer; review collection/sharing exemptions independently | CDM selects the joining endpoint; Android secure RFCOMM APIs provide the bonded connection. Both users confirm before game messages. Physical verification remains open; evaluate the direct peer-transfer exemption against the final implementation. |
 
 Mobile Ads documentation confirms TLS in transit. Account creation is absent; do not invent an account-deletion URL. Clearing local storage removes local saves, not third-party SDK records. A support email is not proof that the developer can erase all Google-held data.

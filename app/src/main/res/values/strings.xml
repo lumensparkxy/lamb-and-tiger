@@ -203,13 +203,4 @@
     <string name="ad_privacy_options">Ad privacy choices</string>
     <string name="ad_privacy_unavailable">Ad privacy settings are unavailable. You can keep playing without ads.</string>
     <string name="retry_ad_privacy">Retry ad privacy settings</string>
-    <string name="age_title">Who is playing?</string>
-    <string name="age_explanation">Select the current player’s age group. Your answer stays on this device. You can change players in Settings.</string>
-    <string name="age_under_13">Under 13</string>
-    <string name="age_13_15">13–15</string>
-    <string name="age_16_17">16–17</string>
-    <string name="age_18_plus">18 or over</string>
-    <string name="age_continue">Continue</string>
-    <string name="age_save_error">Could not save your selection. Please try again.</string>
-    <string name="change_player">Change player</string>
 </resources>

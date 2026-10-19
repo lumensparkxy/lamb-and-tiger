@@ -9,9 +9,6 @@ import org.junit.Test
 
 class SoloFlowTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
-    @org.junit.Before fun selectTestAudience() {
-        rule.runOnIdle { rule.activity.audience.choose(com.maswadkar.lambandtiger.privacy.AgeGroup.UNDER_13) }
-    }
     private val vm
         get() = rule.activity.model
 

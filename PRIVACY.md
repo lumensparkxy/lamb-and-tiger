@@ -22,17 +22,15 @@ The app removes its CDM associations when you leave Play Friend, and clears left
 
 This implementation replaces the earlier Google Nearby Connections SDK. The current version does not include that SDK or its usage-diagnostics integration. Android Bluetooth and system services remain governed by the device’s settings and policies.
 
-## Player age group
+## Age information
 
-Before the game opens, the app asks for the current player’s age group without a preselected answer. It stores only the selected group (under 13, 13–15, 16–17, or 18 and over) on this device. It does not collect a date of birth or send this answer to an app-operated server or advertising service. Choose **Change player** in Settings to remove the answer and select again. Clearing app storage or uninstalling also removes it.
-
-No game features or advertising benefits are offered for choosing an older age. Every age group receives the same restricted advertising settings. Unknown or unanswered age groups cannot trigger the app’s ad initialization or ad requests. This screen is not identity verification or parental consent.
+The app does not ask for or store your age or date of birth. All players receive the same restricted advertising settings described below. If an earlier test build stored a local age-group answer, this version removes that preference when the app opens. Game saves and other settings are retained.
 
 ## Advertising
 
 Ad-enabled versions use **Google AdMob (Google Mobile Ads SDK)** to display a banner on Home and an occasional full-screen ad after a completed game when you choose Play Again or Switch Sides. Ads are not displayed over an ongoing game. If an ad is unavailable, you can continue playing. Earlier versions without advertising do not display these ads.
 
-We configure all ad requests for child-directed treatment, limit requested ad content to Google's **G** category and request non-personalized ads. We ask only for the local age group described above; we do not collect a date of birth. The Android advertising-ID and Android AdServices identifier, attribution and topics permissions are removed from the app. These choices limit advertising behavior; they do not mean that no information is processed.
+We configure all ad requests for child-directed treatment, limit requested ad content to Google's **G** category and request non-personalized ads. We do not ask for an age group or collect a date of birth. The Android advertising-ID and Android AdServices identifier, attribution and topics permissions are removed from the app. These choices limit advertising behavior; they do not mean that no information is processed.
 
 Google documents that its Mobile Ads SDK can automatically collect and share information including IP addresses (which can indicate approximate location), app/ad interactions, diagnostics and device or other identifiers, depending on configuration. Google uses SDK information for advertising, measurement, fraud prevention and security. We do not send your saved board positions or Nearby game messages to AdMob as ad-targeting data. Google's services handle advertising information under their own policies; the app developer does not set Google's retention periods.
 

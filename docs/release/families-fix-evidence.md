@@ -1,5 +1,7 @@
 # D064 Families-related fixes — 19 October 2026
 
+> Historical candidate: D065 subsequently removes the age screen and age storage at the owner’s request. Its age-screen evidence and signed AAB do not describe the current source. See [current submission status](submission-status.md).
+
 Implementation and local evidence; not a Play policy certification or two-phone acceptance.
 
 ## Candidate

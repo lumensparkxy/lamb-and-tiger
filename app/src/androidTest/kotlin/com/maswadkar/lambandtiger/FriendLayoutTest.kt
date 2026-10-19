@@ -23,9 +23,6 @@ import org.junit.Test
 /** Render real UI with isolated state/callbacks: never pair radios or modify either save. */
 class FriendLayoutTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
-    @org.junit.Before fun selectTestAudience() {
-        rule.runOnIdle { rule.activity.audience.choose(com.maswadkar.lambandtiger.privacy.AgeGroup.UNDER_13) }
-    }
     private var state by mutableStateOf(FriendUi())
     private var midnight by mutableStateOf(false)
 
