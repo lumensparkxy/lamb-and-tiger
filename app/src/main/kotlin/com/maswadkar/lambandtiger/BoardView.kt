@@ -126,7 +126,9 @@ internal fun BoardView(
         }) {
         val margin = 18.dp.toPx()
         val scale = minOf((size.width-2*margin)/10, (size.height-60.dp.toPx())/8).coerceAtLeast(0f)
-        val diameter = minOf(24.dp.toPx(), scale * .61f)
+        // The closest points are 2/3 of a board unit apart. Keep adjacent
+        // silhouettes separate, while allowing larger artwork on roomy boards.
+        val diameter = minOf(26.dp.toPx(), scale * .66f)
         fun p(n: Node) = boardPoint(size.width, size.height, margin, n, 30.dp.toPx())
         val active = motion?.takeIf { progress.value < 1f && !reducedMotion && motionEnabled }
         val action = active?.action
