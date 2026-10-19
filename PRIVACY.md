@@ -8,7 +8,7 @@ This policy describes the current data practices of **Lamb and Tiger**, the Andr
 
 The app stores saved games and preferences on your device so that you can continue playing and retain your settings. Nearby play also stores a locally generated player identifier and connection and match information needed to reconnect with the same opponent. You do not need to create an app account.
 
-The computer opponent calculates its moves on your device. Your Solo game is not sent to a cloud AI service to calculate those moves. The current app does not include a custom analytics or advertising SDK.
+The computer opponent calculates its moves on your device. Your Solo game is not sent to a cloud AI service to calculate those moves. The app does not include custom game analytics. Versions with advertising include Google Mobile Ads and Google's User Messaging Platform (UMP), as described below.
 
 ## Playing with a nearby friend
 
@@ -25,9 +25,21 @@ For details about Google's handling of this information and the available contro
 
 ## Advertising
 
-**The current version does not display advertisements and does not include the Google Mobile Ads SDK.**
+Ad-enabled versions use **Google AdMob (Google Mobile Ads SDK)** to display a banner on Home and an occasional full-screen ad after a completed game when you choose Play Again or Switch Sides. Ads are not displayed over an ongoing game. If an ad is unavailable, you can continue playing. Earlier versions without advertising do not display these ads.
 
-We may add Google advertising in a future version. Before introducing it, we will update this policy and the app's disclosures to describe the actual advertising services and data practices, and provide the privacy choices and age-appropriate handling required for that version. This statement is not consent to future advertising-related data collection.
+We configure all ad requests for child-directed treatment, limit requested ad content to Google's **G** category and request non-personalized ads. We do not collect a date of birth or ask players to identify their age. The Android advertising-ID and Android AdServices identifier, attribution and topics permissions are removed from the app. These choices limit advertising behavior; they do not mean that no information is processed.
+
+Google documents that its Mobile Ads SDK can automatically collect and share information including IP addresses (which can indicate approximate location), app/ad interactions, diagnostics and device or other identifiers, depending on configuration. Google uses SDK information for advertising, measurement, fraud prevention and security. We do not send your saved board positions or Nearby game messages to AdMob as ad-targeting data. Google's services handle advertising information under their own policies; the app developer does not set Google's retention periods.
+
+The app uses Google's **User Messaging Platform (UMP)** to check applicable privacy requirements. Ad requests begin only after a successful privacy-status update allows them. Child/under-age signals are set separately for UMP and the advertising SDK; a privacy form is not proof of age or parental consent. Where UMP requires privacy choices, you can access **Ad privacy choices** in Settings. If the privacy check fails, ads remain unavailable and gameplay remains usable. Settings always includes this privacy-policy link.
+
+The app stores the time of the last displayed full-screen ad on your device to limit frequency. This setting is removed when you clear app storage or uninstall the app.
+
+For more information:
+
+- [Google Mobile Ads SDK data disclosures](https://developers.google.com/admob/android/privacy/play-data-disclosure)
+- [How Google uses information from apps that use its services](https://policies.google.com/technologies/partner-sites)
+- [Google Privacy Policy](https://policies.google.com/privacy)
 
 ## Retention and removal of local information
 
@@ -39,7 +51,7 @@ Removing information from your phone does not remove a friend's independent save
 
 ## Children and families
 
-Lamb and Tiger is intended for children and adults. The current app does not offer an app account, advertising, freeform chat or photo sharing. Nearby mode exchanges the information required for a game with the other player, as described above.
+Lamb and Tiger is intended for children and adults. The current app does not offer an app account, freeform chat or photo sharing. Nearby mode exchanges the information required for a game with the other player, as described above.
 
 Parents and guardians can contact **[maswadkar@gmail.com](mailto:maswadkar@gmail.com)** with privacy questions, including concerns about their child's use of the app.
 
