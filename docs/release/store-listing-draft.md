@@ -1,6 +1,6 @@
 # Lamb and Tiger — store materials draft
 
-Prepared 2026-10-19. Store listing review copy only; no listing uploaded or published. These descriptions represent the intended V1 once its release gates pass, not a statement of current production acceptance.
+Prepared 2026-10-19. English text and required visual assets submitted with the closed Alpha for review; no listing publication or approval is verified. See [submission receipt](alpha-submission-20261019.md). These descriptions represent the intended V1 once its release gates pass, not a statement of current production acceptance.
 
 ## English listing
 
@@ -34,18 +34,24 @@ Play Lamb and Tiger on the 23-point Aadu Puli Aatam board. Challenge five comput
 
 ## Review status
 
-- Name: approved D040. Descriptions/notes above: proposed, not previously approved public copy.
-- Nearby sentences: require two-physical-phone acceptance and resolution of the Families/Bluetooth policy finding before publication. Do not silently remove Nearby from V1 to ship this text.
+- Name: approved D040. The English short and full descriptions above were saved and included in the owner-authorized closed Alpha submission (D068); Google approval/publication is not verified. The initial release notes above remain a draft; this record does not verify that exact notes text was submitted.
+- Nearby: owner accepts proceeding with setup and plans final two-phone testing through Play closed testing (D066). No new physical test is claimed. Preserve Nearby in V1.
 - Tamil support: implemented resources, but fluent review remains outstanding. Do not create or publish a Tamil listing claiming reviewed translation yet.
-- Audience: D050 says ages 10+ and adults; on 2026-10-19 the owner clarified that anyone can use it. This is an inclusive product direction, not an IARC rating or a completed selection of Play's age bands. Evaluate suitability for each selected age band; do not automatically select every band, or switch to adults-only.
+- Audience: the owner subsequently explicitly selected all six Play age bands, including 5 and under (D067). Owner-authorized target-audience certification and IARC are saved.
 - Public support email: **maswadkar@gmail.com**, supplied by the owner for this release.
-- Category proposal: **Game → Board**. Price, countries and initial testing audience remain owner decisions.
+- Category **Game → Board** and support email are saved. Free with ads / all supported countries is owner-approved (D063), Alpha targeting saved for all 177 named countries/regions plus Rest of World. The owner-supplied two-account closed Alpha tester list is saved and selected.
 - Ad-enabled releases contain Home banners and occasional completed-game interstitials. No in-app purchases. Do not describe the ad-enabled release as ad-free.
 - Privacy URL: https://github.com/lumensparkxy/lamb-and-tiger/blob/main/PRIVACY.md. Advertising disclosure update published on 2026-10-19; Settings links to it.
 
 ## Asset handoff
 
-| Asset | Existing source / required work |
+**Current exports and upload evidence:** [Console setup record](console-setup-20261019.md) supersedes the earlier asset inventory below. Required icon, feature graphic and two real phone screenshots are saved in Console; optional tablet assets remain absent.
+
+### Historical asset checklist — before Console setup
+
+The following checklist preserves the earlier handoff state; its outstanding export and phone-capture tasks were superseded by the Console setup record linked above. Optional tablet and Tamil assets remain pending.
+
+| Asset | Earlier source / required work |
 | --- | --- |
 | Approved icon master | `design/branding/lamb-and-tiger-icon-v1.png`, 1254 × 1254 RGB. Export and inspect a Play-compliant 512 × 512 icon; the master is not the upload export. |
 | Approved wordmark | `design/branding/lamb-and-tiger-logo-v1.png`, 1983 × 793 RGBA. Preserve D052 artwork and ivory presentation for legibility. |
