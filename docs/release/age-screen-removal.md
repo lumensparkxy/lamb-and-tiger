@@ -17,7 +17,7 @@ The same ad-disabled debug APK was installed with `adb install -r` on Pixel 9a a
 885dc545c0b68eb0466dd0aee99cd3acdd179b64ba914748928b57f64aef947f
 ```
 
-Package: `com.maswadkar.lambandtiger.debug`; version code 1 / `0.1-solo`. The Pixel's original installation timestamp was retained; no uninstall or data-clear command was used on the phone. The old `audience.xml` preference was absent after launch on both devices. Pixel installation and launch were confirmed, but its locked/dozing system screen prevented a rendered app check at the time of this record; owner unlock is pending.
+Package: `com.maswadkar.lambandtiger.debug`; version code 1 / `0.1-solo`. The Pixel's original installation timestamp was retained; no uninstall or data-clear command was used on the phone. The old `audience.xml` preference was absent after launch on both devices. After the owner unlocked the Pixel, its Home screen was visually verified with Continue, Play AI, Play Friend, How to Play and Settings visible and no age prompt. Continue remains available for the existing saved game. MainActivity was confirmed as the resumed activity. This completes the pending physical-device visual check; it does not verify Bluetooth connectivity.
 
 ## Release boundaries
 
