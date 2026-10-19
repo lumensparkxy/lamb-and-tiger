@@ -34,9 +34,16 @@ These are implementation/verification questions under the approved protocol, not
 
 ## Before publication
 
-- Store account/ownership, signing custody, distribution track and release acceptance criteria?
-- Monetization and analytics choices? No ads, purchases, custom analytics or internet permission are included in this Solo build.
-- Actual audience, privacy and SDK disclosures for the eventual release, with a current target-SDK recheck?
-- Explicit authorization for merging and any release publication? D042 covers this Solo-first branch commit/push and issue evidence updates.
+The 2026-10-19 [production preparation report](release/production-readiness.md)
+is the current release handoff. D060 records the supplied public support email,
+inclusive audience direction. D061 now authorizes the implemented Google ads placements; see [advertising integration](release/ads-integration.md). Local unsigned bundle,
+JVM/lint evidence, listing drafts and a published advertising privacy policy now exist; this does not settle
+signing custody, distribution, physical acceptance or policy compliance.
 
-The repository remains private under lumensparkxy. No ownership/visibility change, release signing or publication is part of D041. These gates do not prevent the authorized local Solo implementation.
+- Store account/ownership, signing custody, distribution track and release acceptance criteria?
+- Price/countries remain owner decisions. The current code includes Google Mobile Ads and UMP with Home banner and completed-game interstitial placements. Live serving requires the explicit release flag and final policy/account review. No purchases or custom game analytics. Review Nearby and advertising SDK diagnostics separately.
+- Actual audience, privacy and SDK disclosures for the eventual release, with a current target-SDK recheck?
+- Explicit authorization for merging and any Play release publication? D062 authorizes the privacy-policy/message publication and scoped commit/push; it does not authorize a Play rollout.
+- Resolve the Families Bluetooth/CDM and child-audience SDK findings, and final Data safety declarations; see [privacy review](release/privacy-and-ads-review.md).
+
+The repository is now public under lumensparkxy with Apache-2.0 code licensing, following the owner's separate authorization. Release signing and publication remain separate. These gates do not prevent the authorized local Solo implementation.

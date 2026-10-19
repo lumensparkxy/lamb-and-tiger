@@ -100,6 +100,14 @@ internal val dark =
 fun LambAndTiger(vm: GameViewModel) {
     val s by vm.ui.collectAsStateWithLifecycle()
     val friend: com.maswadkar.lambandtiger.friend.FriendViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val ads = com.maswadkar.lambandtiger.ads.LocalAds.current
+    val friendState by friend.ui.collectAsStateWithLifecycle()
+    val completedKey = when (s.screen) {
+        Screen.GAME -> s.match?.takeIf { it.state.outcome != Outcome.ONGOING }?.let { "solo:${it.id}" }
+        Screen.NEARBY -> friendState.match?.takeIf { it.state.outcome != Outcome.ONGOING }?.let { "nearby:${it.id}" }
+        else -> null
+    }
+    SideEffect { ads?.updateLocation(s.screen == Screen.HOME, s.screen == Screen.SETTINGS, completedKey) }
     val goBack = { if(s.screen != Screen.NEARBY || !friend.requestLeave()) vm.back() }
     val view = LocalView.current
     val activity =
@@ -180,7 +188,10 @@ fun LambAndTiger(vm: GameViewModel) {
                                 CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                         }
                         when (s.screen) {
-                            Screen.HOME -> Home(s, vm)
+                            Screen.HOME -> Column(Modifier.fillMaxSize()) {
+                                Box(Modifier.weight(1f)) { Home(s, vm) }
+                                com.maswadkar.lambandtiger.ads.HomeBanner()
+                            }
                             Screen.SETUP -> Setup(s, vm)
                             Screen.GAME -> GameScreen(s, vm)
                             Screen.SETTINGS -> Settings(s, vm)
@@ -687,6 +698,11 @@ private fun TabletopActions(s: UiState,vm: GameViewModel,playable: Boolean,modif
 private fun GameResultDialog(s: UiState, vm: GameViewModel, onDismiss: () -> Unit) {
     val match = s.match ?: return
     val outcome = match.state.outcome
+    val ads = com.maswadkar.lambandtiger.ads.LocalAds.current
+    fun rematch(switch: Boolean) {
+        val proceed = { vm.openSetup(switch = switch); vm.requestStart() }
+        if (ads == null) proceed() else ads.betweenGames("solo:${match.id}", proceed)
+    }
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(28.dp), tonalElevation = 6.dp) {
             Column(
@@ -716,11 +732,11 @@ private fun GameResultDialog(s: UiState, vm: GameViewModel, onDismiss: () -> Uni
                 )
                 Text(stringResource(if (match.human == Side.LAMB) R.string.you_are_lambs else R.string.you_are_tigers),
                     style = MaterialTheme.typography.labelLarge)
-                Button(onClick = { vm.openSetup(); vm.requestStart() },
+                Button(onClick = { rematch(false) },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.play_again))
                 }
-                OutlinedButton(onClick = { vm.openSetup(switch = true); vm.requestStart() },
+                OutlinedButton(onClick = { rematch(true) },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.switch_sides))
                 }
@@ -838,6 +854,7 @@ private fun Settings(s: UiState, vm: GameViewModel) {
             vm.preference("reduced", it)
         }
         Text(stringResource(R.string.feedback_description))
+        com.maswadkar.lambandtiger.ads.PrivacyControls()
         if (s.message != null)
             Text(stringResource(s.message), color = MaterialTheme.colorScheme.error)
     }

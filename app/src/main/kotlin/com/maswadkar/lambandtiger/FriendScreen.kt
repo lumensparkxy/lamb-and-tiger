@@ -37,6 +37,7 @@ import com.maswadkar.lambandtiger.nearby.NearbyPermissions
 @Composable
 internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHome: () -> Unit, onRules: () -> Unit, onSettings: () -> Unit) {
     val s by model.ui.collectAsStateWithLifecycle()
+    val ads = com.maswadkar.lambandtiger.ads.LocalAds.current
     val context=LocalContext.current
     var host by remember { mutableStateOf(true) }
     var resume by remember { mutableStateOf(false) }
@@ -69,7 +70,13 @@ internal fun FriendScreen(model: FriendViewModel, preferences: Preferences, onHo
     FriendContent(s, preferences, model.label, FriendActions(
         start = ::start, connect = model::connect, confirm = model::confirm, stop = model::stop,
         select = model::select, ready = model::ready, tap = model::tap, pause = model::pause,
-        rematch = model::rematch, offer = model::offer, answer = model::answer,
+        rematch = { switch ->
+            val match = model.ui.value.match
+            if (match != null && match.state.outcome != Outcome.ONGOING) {
+                val proceed = { if (model.ui.value.match?.id == match.id) model.rematch(switch) }
+                if (ads == null) proceed() else ads.betweenGames("nearby:${match.id}", proceed)
+            }
+        }, offer = model::offer, answer = model::answer,
         back = { if (!model.requestLeave()) onHome() }, home = onHome,
         cancelLeave = model::cancelLeave,
         rules = { model.pause(); onRules() }, settings = { model.pause(); onSettings() },

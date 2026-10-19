@@ -198,4 +198,9 @@
     <string name="difficulty_level_3">Hard</string>
     <string name="difficulty_title_4">Grandmaster Growl</string>
     <string name="difficulty_level_4">Expert</string>
+    <string name="advertisement">Advertisement</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="ad_privacy_options">Ad privacy choices</string>
+    <string name="ad_privacy_unavailable">Ad privacy settings are unavailable. You can keep playing without ads.</string>
+    <string name="retry_ad_privacy">Retry ad privacy settings</string>
 </resources>

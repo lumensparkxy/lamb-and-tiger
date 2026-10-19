@@ -198,4 +198,9 @@
     <string name="difficulty_level_3">கடினம்</string>
     <string name="difficulty_title_4">பெரும் உறுமல்</string>
     <string name="difficulty_level_4">நிபுணர்</string>
+    <string name="advertisement">விளம்பரம்</string>
+    <string name="privacy_policy">தனியுரிமைக் கொள்கை</string>
+    <string name="ad_privacy_options">விளம்பரத் தனியுரிமைத் தேர்வுகள்</string>
+    <string name="ad_privacy_unavailable">விளம்பரத் தனியுரிமை அமைப்புகள் கிடைக்கவில்லை. விளம்பரங்கள் இல்லாமல் தொடர்ந்து விளையாடலாம்.</string>
+    <string name="retry_ad_privacy">விளம்பரத் தனியுரிமை அமைப்புகளை மீண்டும் முயற்சிக்கவும்</string>
 </resources>

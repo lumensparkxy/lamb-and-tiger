@@ -41,7 +41,7 @@ The approved board and rules are D017; product flows are D018–D033; module/UI 
 
 D033 approves the consolidated screen flows and acceptance criteria as the issue #2 baseline, incorporating product decisions D018–D032. The user subsequently authorized publication and GitHub closure; see [issue #2](https://github.com/lumensparkxy/lamb-and-tiger/issues/2) for completion evidence. Issue #3 now has a minimal diagnostic scaffold, a successful debug build, four passing permission-policy unit tests, and a bounded emulator diagnostic smoke check. D046 subsequently proved one acknowledged sample exchange between a physical Pixel 9a and emulator; see the [harness report](experiments/nearby-harness/LINK-TEST.md). Two-phone acceptance remains open.
 
-Verified private repository milestones: [M1 — Specification baseline](https://github.com/lumensparkxy/lamb-and-tiger/milestone/1); [M2 — Technical foundation](https://github.com/lumensparkxy/lamb-and-tiger/milestone/2); [M3 — Playable Nearby](https://github.com/lumensparkxy/lamb-and-tiger/milestone/3); [M4 — Playable Solo](https://github.com/lumensparkxy/lamb-and-tiger/milestone/4); [M5 — V1 polish and release readiness](https://github.com/lumensparkxy/lamb-and-tiger/milestone/5).
+Repository milestones: [M1 — Specification baseline](https://github.com/lumensparkxy/lamb-and-tiger/milestone/1); [M2 — Technical foundation](https://github.com/lumensparkxy/lamb-and-tiger/milestone/2); [M3 — Playable Nearby](https://github.com/lumensparkxy/lamb-and-tiger/milestone/3); [M4 — Playable Solo](https://github.com/lumensparkxy/lamb-and-tiger/milestone/4); [M5 — V1 polish and release readiness](https://github.com/lumensparkxy/lamb-and-tiger/milestone/5).
 
 ## Technical direction
 
@@ -49,7 +49,18 @@ D050 implements the approved Quiet Tabletop Solo design with animal-shaped piece
 
 Three modules: `app` owns Compose UI, coordination, codecs and SQLite persistence; `game` is pure Kotlin/JVM with deterministic rules and separate computer policies; `nearby` owns the Android Nearby Connections adapter under D047. No game rules or simulated connection success live in `nearby`.
 
-## Development
+## Google Play preparation
+
+See [production readiness and blockers](docs/release/production-readiness.md),
+[store-material drafts](docs/release/store-listing-draft.md), and the
+[privacy / Google ads review](docs/release/privacy-and-ads-review.md).
+With the development environment below configured, run
+`python3 scripts/prepare_play_release.py` to build and retain local release
+evidence under ignored `artifacts/local/`. This does not sign with a release key,
+upload, or establish production acceptance. Use an exclusive checkout/build
+session; run device checks separately on an exclusively available test device.
+
+## Development environment
 
 Use JDK 25 (local checks use Android Studio JBR 25.0.3), SDK platform 37, and Build Tools 36.0.0. Set `JAVA_HOME` and `ANDROID_HOME` locally. Minimum SDK is 29; the approved initial target remains 36. Do not commit SDK paths or signing keys.
 
@@ -94,3 +105,13 @@ Dependencies are pinned and locked; `gradle/verification-metadata.xml` records S
 CI invokes `bash scripts/ci-connected-tests.sh` around the connected-test command to print instrumentation counts, failure reports and device crash diagnostics without changing the test exit status. Espresso 3.7.0 is explicitly pinned for API 37 input-service compatibility.
 
 The isolated [Nearby harness](experiments/nearby-harness/README.md) has its own verified commands. D046 resumed that investigation and D047 authorized local production Nearby implementation. D041 authorizes continuous Solo-first implementation and routine fixes. D042 authorizes review, commit/push and issue evidence updates for this branch; merging and release publication remain separate scope boundaries.
+
+### Advertising configurations
+
+[Integration and verification notes](docs/release/ads-integration.md) describe Home banners, completed-game interstitials, privacy handling and the remaining release setup.
+
+- `./gradlew :app:assembleDebug`: no ad requests; normal deterministic app tests.
+- `./gradlew :app:assembleAdsQa`: separate `.adsqa` package with Google's test app/ad-unit IDs (add `-Plamb.qaOwnedApp=true` to check the owned app's UMP setup).
+- `./gradlew :app:bundleRelease -Plamb.liveAds=true`: unsigned production-ID candidate. Public IDs are in `gradle.properties`; default release builds keep ads disabled. Publish matching privacy disclosures and finish account/Play setup before distribution.
+
+SDK smoke tests use `-Plamb.testBuildType=adsQa` and only the explicitly selected emulator. Do not use them on a device with personal saves; the test runner uninstalls that variant afterward.
